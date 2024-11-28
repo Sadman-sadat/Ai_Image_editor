@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_ai_editor/presentation/controllers/base64_image_conversion_controller.dart';
@@ -6,11 +5,11 @@ import 'package:image_ai_editor/presentation/views/result_preview_screen.dart';
 import 'package:image_ai_editor/processing_type.dart';
 import 'package:image_picker/image_picker.dart';
 
-class ImageActionButtons extends StatelessWidget {
+class ImageProcessingActionButtons extends StatelessWidget {
   final Base64ImageConversionController controller;
   final ProcessingType processingType;
 
-  const ImageActionButtons({
+  const ImageProcessingActionButtons({
     super.key,
     required this.controller,
     required this.processingType,
@@ -18,11 +17,13 @@ class ImageActionButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      return controller.selectedImage.value != null
-          ? _buildUploadButton()
-          : _buildPickButtons();
-    });
+    return GetBuilder<Base64ImageConversionController>(
+      builder: (controller) {
+        return controller.selectedImage != null
+            ? _buildUploadButton()
+            : _buildPickButtons();
+      },
+    );
   }
 
   // Method to build the camera and gallery buttons
@@ -82,7 +83,7 @@ class ImageActionButtons extends StatelessWidget {
           child: ElevatedButton.icon(
             onPressed: () {
               Get.to(() => ResultPreviewScreen(
-                base64Image: controller.processedImageUrl.value,
+                base64Image: controller.processedImageUrl,
                 processingType: processingType,
               ));
             },
@@ -94,5 +95,3 @@ class ImageActionButtons extends StatelessWidget {
     );
   }
 }
-
-

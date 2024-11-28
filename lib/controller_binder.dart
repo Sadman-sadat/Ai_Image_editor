@@ -5,6 +5,8 @@ import 'package:image_ai_editor/presentation/controllers/fetch_queued_image_cont
 import 'package:image_ai_editor/presentation/controllers/image_enhancement_controller.dart';
 import 'package:image_ai_editor/presentation/controllers/object_removal_controller.dart';
 
+import 'presentation/controllers/comparison_controller.dart';
+
 class ControllerBinder extends Bindings {
   @override
   void dependencies() {
@@ -13,5 +15,6 @@ class ControllerBinder extends Bindings {
     Get.lazyPut(() => ObjectRemovalController(), fenix: true);
     Get.lazyPut(() => FetchQueuedImageController(), fenix: true);
     Get.lazyPut(() => DownloadImageService(), fenix: true);
+    Get.lazyPut(() => ComparisonController(), fenix: true);
   }
 }

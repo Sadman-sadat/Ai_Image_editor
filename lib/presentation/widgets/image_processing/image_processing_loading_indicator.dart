@@ -1,24 +1,25 @@
 import 'package:flutter/material.dart';
 
-class ImagePlaceholder extends StatelessWidget {
-  const ImagePlaceholder({super.key});
+class ImageProcessingLoadingIndicator extends StatelessWidget {
+  final String text;
+
+  const ImageProcessingLoadingIndicator({
+    super.key,
+    required this.text,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(
-          Icons.image_outlined,
-          size: 64,
-          color: Colors.grey[400],
-        ),
+        const CircularProgressIndicator(),
         const SizedBox(height: 16),
-        const Text(
-          "Pick an image to start",
-          style: TextStyle(
-            fontSize: 18,
+        Text(
+          text,
+          style: const TextStyle(
             color: Colors.grey,
+            fontSize: 16,
           ),
         ),
       ],

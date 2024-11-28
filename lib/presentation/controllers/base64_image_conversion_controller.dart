@@ -9,46 +9,82 @@ import 'package:image_ai_editor/presentation/widgets/snack_bar_message.dart';
 import 'package:image_picker/image_picker.dart';
 
 class Base64ImageConversionController extends GetxController {
+  bool _inProgress = false;
+  String _errorMessage = '';
+  File? _selectedImage;
+  String _processedImageUrl = '';
+  String _base64ImageString = '';
+
   final Base64ImageConversionService _base64ImageService = Base64ImageConversionService();
   final ImageStorageService _storageService = Get.find<ImageStorageService>();
 
-  Rx<File?> selectedImage = Rx<File?>(null);
-  RxString processedImageUrl = ''.obs;
-  RxString base64ImageString = ''.obs;
-  RxBool isLoading = false.obs;
+  // Getters
+  bool get inProgress => _inProgress;
+  String get errorMessage => _errorMessage;
+  File? get selectedImage => _selectedImage;
+  String get processedImageUrl => _processedImageUrl;
+  String get base64ImageString => _base64ImageString;
 
-  Future<void> pickImage(ImageSource source) async {
-    final pickedFile = await ImagePicker().pickImage(
-      source: source,
-      maxWidth: 1080,
-      maxHeight: 1080,
-      imageQuality: 85,
-    );
+  Future<bool> pickImage(ImageSource source) async {
+    bool isSuccess = false;
+    _inProgress = true;
+    _errorMessage = '';
+    update();
 
-    if (pickedFile != null) {
-      selectedImage.value = File(pickedFile.path);
-      await convertToBase64AndUpload();
+    try {
+      final pickedFile = await ImagePicker().pickImage(
+        source: source,
+        maxWidth: 1080,
+        maxHeight: 1080,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        _selectedImage = File(pickedFile.path);
+        isSuccess = await convertToBase64AndUpload();
+      }
+    } catch (e) {
+      _errorMessage = 'Error picking image: $e';
+      showSnackBarMessage(
+        title: 'Error',
+        message: _errorMessage,
+      );
+      print(_errorMessage);
+    } finally {
+      _inProgress = false;
+      update();
     }
+
+    return isSuccess;
   }
 
-  Future<void> convertToBase64AndUpload() async {
-    if (selectedImage.value == null) return;
+  Future<bool> convertToBase64AndUpload() async {
+    bool isSuccess = false;
+    _inProgress = true;
+    _errorMessage = '';
+    update();
 
-    isLoading.value = true;
     try {
-      final bytes = await selectedImage.value!.readAsBytes();
+      if (_selectedImage == null) {
+        _errorMessage = 'No image selected';
+        return false;
+      }
+
+      final bytes = await _selectedImage!.readAsBytes();
       final base64String = base64Encode(bytes);
-      base64ImageString.value = base64String;
+      _base64ImageString = base64String;
 
       final storedData = _storageService.getImageData(
         base64Image: base64String,
-        processingType: 'base64_conversion', // You might want to add this to ProcessingType as well
+        processingType: 'base64_conversion',
       );
 
       if (storedData != null && storedData['processedUrl']?.isNotEmpty == true) {
-        processedImageUrl.value = storedData['processedUrl']!;
-        isLoading.value = false;
-        return;
+        _processedImageUrl = storedData['processedUrl']!;
+        isSuccess = true;
+        _inProgress = false;
+        update();
+        return isSuccess;
       }
 
       final model = Base64ImageConversionModel(
@@ -58,7 +94,8 @@ class Base64ImageConversionController extends GetxController {
       );
 
       final imageUrl = await _base64ImageService.convertImageToBase64(model);
-      processedImageUrl.value = imageUrl;
+      _processedImageUrl = imageUrl;
+      isSuccess = true;
 
       // Store the processed data
       _storageService.storeImageData(
@@ -68,14 +105,18 @@ class Base64ImageConversionController extends GetxController {
       );
 
     } catch (e) {
+      _errorMessage = 'Error converting or uploading image: $e';
       showSnackBarMessage(
         title: 'Error',
-        message: 'Error converting or uploading image: $e',
+        message: _errorMessage,
       );
-      print('Error converting or uploading image: $e');
+      print(_errorMessage);
     } finally {
-      isLoading.value = false;
+      _inProgress = false;
+      update();
     }
+
+    return isSuccess;
   }
 
   // Method to retrieve stored base64 output for other processing
@@ -87,16 +128,20 @@ class Base64ImageConversionController extends GetxController {
 
     return storedData?['base64Image'];
   }
-  //for object removal remove if necessary
-  Future<void> pickImageFromFile(File imageFile) async {
-    selectedImage.value = imageFile;
-    await convertToBase64AndUpload();
+
+  // For object removal, remove if unnecessary
+  Future<bool> pickImageFromFile(File imageFile) async {
+    _selectedImage = imageFile;
+    return await convertToBase64AndUpload();
   }
 
   // Clear the current image and its data
   void clearCurrentImage() {
-    selectedImage.value = null;
-    processedImageUrl.value = '';
-    base64ImageString.value = '';
+    _selectedImage = null;
+    _processedImageUrl = '';
+    _base64ImageString = '';
+    _errorMessage = '';
+    update();
+    Get.back();
   }
 }

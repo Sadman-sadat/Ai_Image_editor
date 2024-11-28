@@ -4,33 +4,41 @@ import 'package:image_ai_editor/data/services/image_enhancement_service.dart';
 import 'package:image_ai_editor/data/services/image_storage_service.dart';
 import 'package:image_ai_editor/data/utility/urls.dart';
 import 'package:image_ai_editor/presentation/controllers/fetch_queued_image_controller.dart';
+import 'package:image_ai_editor/presentation/controllers/processing_controller.dart';
 import 'package:image_ai_editor/processing_type.dart';
 
-class ImageEnhancementController extends GetxController {
+class ImageEnhancementController extends ProcessingController {
   final ImageEnhancementService _imageEnhancementService = ImageEnhancementService();
-  final ImageStorageService _storageService = Get.find<ImageStorageService>();
-  final FetchQueuedImageController _fetchController = Get.find<FetchQueuedImageController>();
+  final ImageStorageService _storageService = Get.find();
+  final FetchQueuedImageController _fetchController = Get.find();
 
-  RxBool isLoading = false.obs;
-  RxString resultImageUrl = ''.obs;
-  RxString trackedId = ''.obs;
-  RxDouble generationTime = 0.0.obs;
+  @override
+  Future<bool> processImage(String base64Image) async {
+    return await enhanceImage(base64Image);
+  }
 
-  Future<void> enhanceImage(String base64Image) async {
-    isLoading.value = true;
-    resultImageUrl.value = '';
-    trackedId.value = '';
+  Future<bool> enhanceImage(String base64Image) async {
+    bool isSuccess = false;
+    updateState(
+      inProgress: true,
+      errorMessage: '',
+      resultImageUrl: '',
+      trackedId: '',
+    );
 
     try {
-      // Check if we already have this processed image
+      // Check storage first
       final storedData = _storageService.getImageData(
         base64Image: base64Image,
         processingType: ProcessingType.imageEnhancement.storageKey,
       );
+
       if (storedData != null && storedData['processedUrl']?.isNotEmpty == true) {
-        resultImageUrl.value = storedData['processedUrl']!;
-        isLoading.value = false;
-        return;
+        updateState(
+          resultImageUrl: storedData['processedUrl']!,
+          inProgress: false,
+        );
+        return true;
       }
 
       ImageEnhancementModel model = ImageEnhancementModel(
@@ -38,58 +46,108 @@ class ImageEnhancementController extends GetxController {
         image: base64Image,
       );
 
-      Map<String, dynamic> response = await _imageEnhancementService.enhancementImage(model);
+      Map response = await _imageEnhancementService.enhancementImage(model);
+      print('Image Enhancement Response: $response'); // Diagnostic print
 
       if (response.containsKey('output') && response['output'] != null) {
-        resultImageUrl.value = response['output'];
-        generationTime.value = response['generationTime'] ?? 0.0;
+        // Immediate output available
+        updateState(
+          resultImageUrl: response['output'],
+          generationTime: response['generationTime'] ?? 0.0,
+          inProgress: false,
+        );
 
         // Store the processed image
         _storageService.storeImageData(
-            base64Image: base64Image,
-            processedUrl: resultImageUrl.value,
-            processingType: ProcessingType.imageEnhancement.storageKey,
+          base64Image: base64Image,
+          processedUrl: resultImageUrl,
+          processingType: ProcessingType.imageEnhancement.storageKey,
         );
-      } else if (response.containsKey('id')) {
-        trackedId.value = response['id'].toString();
-        generationTime.value = response['generationTime'] ?? 0.0;
 
-        // Start polling with base64Image and processing type
-        _startPollingForResult(base64Image);
+        //extra update for some reason here it doesn't update with updateState
+        update();
+        isSuccess = true;
+      } else if (response.containsKey('id')) {
+        // Queued processing, need to poll
+        final trackerId = response['id'].toString();
+        print('Tracker ID received: $trackerId'); // Diagnostic print
+
+        updateState(
+          trackedId: trackerId,
+          generationTime: response['generationTime'] ?? 0.0,
+        );
+
+        // More aggressive polling
+        await _startPollingForResult(base64Image, trackerId);
+
+        // Check if image was successfully retrieved
+        isSuccess = resultImageUrl.isNotEmpty;
+
+        print('Polling result - Success: $isSuccess, Image URL: $resultImageUrl'); // Diagnostic print
       }
     } catch (e, stackTrace) {
-      print('Error in enhanceImage: $e');
+      updateState(
+        errorMessage: 'Error in enhanceImage: $e',
+        inProgress: false,
+      );
+      print('Image Enhancement Error: $errorMessage');
       print('Stack trace: $stackTrace');
-    } finally {
-      isLoading.value = false;
     }
+
+    return isSuccess;
   }
 
-  void _startPollingForResult(String base64Image) {
-    if (trackedId.isEmpty) return;
+  Future<void> _startPollingForResult(String base64Image, String trackerId) async {
+    print('Starting polling for trackerId: $trackerId'); // Diagnostic print
 
-    Future.doWhile(() async {
-      if (_fetchController.fetchedImageUrl.isNotEmpty) {
-        resultImageUrl.value = _fetchController.fetchedImageUrl.value;
-        return false;
-      }
+    int maxAttempts = 20; // Increased number of attempts
+    int attempts = 0;
+    bool imageFound = false;
 
-      await _fetchController.fetchQueuedImage(
-        trackedId.value,
+    while (attempts < maxAttempts && !imageFound) {
+      print('Polling attempt $attempts'); // Diagnostic print
+
+      // Try to fetch the queued image
+      bool fetchResult = await _fetchController.fetchQueuedImage(
+        trackerId,
         base64Image: base64Image,
         processingType: ProcessingType.imageEnhancement.storageKey,
       );
 
-      await Future.delayed(const Duration(seconds: 5));
-      return _fetchController.fetchedImageUrl.isEmpty && !_fetchController.isLoading.value;
-    });
+      print('Fetch attempt result: $fetchResult'); // Diagnostic print
+      print('Fetched Image URL: ${_fetchController.fetchedImageUrl}'); // Diagnostic print
+
+      if (_fetchController.fetchedImageUrl.isNotEmpty) {
+        updateState(
+          resultImageUrl: _fetchController.fetchedImageUrl,
+          inProgress: false,
+        );
+        imageFound = true;
+        break;
+      }
+
+      // Exponential backoff: wait longer between attempts
+      await Future.delayed(Duration(seconds: 3 * (attempts + 1)));
+      attempts++;
+    }
+
+    if (!imageFound) {
+      updateState(
+        errorMessage: 'Could not retrieve processed image after $maxAttempts attempts',
+        inProgress: false,
+      );
+      print('Failed to retrieve image after multiple attempts'); // Diagnostic print
+    }
   }
 
-  // Clear the current processing data
+  @override
   void clearCurrentProcess() {
-    resultImageUrl.value = '';
-    trackedId.value = '';
+    updateState(
+      resultImageUrl: '',
+      trackedId: '',
+      errorMessage: '',
+      inProgress: false,
+    );
     _fetchController.clearFetchedImageUrl();
   }
 }
-
