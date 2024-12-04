@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_ai_editor/presentation/views/background_removal_screen.dart';
 import 'package:image_ai_editor/presentation/views/image_enhancement_screen.dart';
+import 'package:image_ai_editor/presentation/views/object_removal_screen.dart';
 import 'package:image_ai_editor/presentation/widgets/snack_bar_message.dart';
 
 void showCustomBottomSheet(BuildContext context) {
@@ -34,14 +35,21 @@ void showCustomBottomSheet(BuildContext context) {
                     leading: const Icon(Icons.account_box_outlined),
                     title: const Text('Background Removal'),
                     onTap: () {
-                      Get.to(() => BackgroundRemovalScreen());
+                      Get.to(() => const BackgroundRemovalScreen());
                     },
                   ),
                   ListTile(
                     leading: const Icon(Icons.zoom_out_map_outlined),
                     title: const Text('Image Enhancement'),
                     onTap: () {
-                      Get.to(() => ImageEnhancementScreen());
+                      Get.to(() => const ImageEnhancementScreen());
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.border_color_outlined),
+                    title: const Text('Object Removal'),
+                    onTap: () {
+                      Get.to(() => const ObjectRemovalScreen());
                     },
                   ),
                   ListTile(

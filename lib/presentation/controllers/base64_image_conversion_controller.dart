@@ -142,6 +142,5 @@ class Base64ImageConversionController extends GetxController {
     _base64ImageString = '';
     _errorMessage = '';
     update();
-    Get.back();
   }
 }
