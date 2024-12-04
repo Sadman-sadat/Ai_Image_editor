@@ -5,6 +5,7 @@ import 'package:image_ai_editor/data/services/image_storage_service.dart';
 import 'package:image_ai_editor/presentation/controllers/background_removal_controller.dart';
 import 'package:image_ai_editor/presentation/controllers/comparison_controller.dart';
 import 'package:image_ai_editor/presentation/controllers/fetch_queued_image_controller.dart';
+import 'package:image_ai_editor/presentation/controllers/head_shot_gen_controller.dart';
 import 'package:image_ai_editor/presentation/controllers/image_enhancement_controller.dart';
 import 'package:image_ai_editor/presentation/controllers/object_removal_controller.dart';
 import 'package:image_ai_editor/presentation/controllers/processing_controller.dart';
@@ -18,12 +19,16 @@ class ResultPreviewScreen extends StatefulWidget {
   final String base64Image;
   final ProcessingType processingType;
   final String? maskImage;
+  final String? textPrompt;
+  final bool? comparisonMode;
 
   const ResultPreviewScreen({
     super.key,
     required this.base64Image,
     required this.processingType,
-    this.maskImage
+    this.maskImage,
+    this.textPrompt,
+    this.comparisonMode
   });
 
   @override
@@ -51,6 +56,8 @@ class _ResultPreviewScreenState extends State<ResultPreviewScreen> {
         return Get.find<ImageEnhancementController>();
       case ProcessingType.objectRemoval:
         return Get.find<ObjectRemovalController>();
+      case ProcessingType.headShotGen:
+        return Get.find<HeadShotGenController>();
     }
   }
 
@@ -69,6 +76,17 @@ class _ResultPreviewScreenState extends State<ResultPreviewScreen> {
           showSnackBarMessage(
             title: 'Error',
             message: 'Mask image is required for object removal',
+            colorText: Colors.red,
+          );
+        }
+        break;
+      case ProcessingType.headShotGen:
+        if (widget.textPrompt != null) {
+          (activeController as HeadShotGenController).generateHeadShot(widget.base64Image, widget.textPrompt!);
+        } else {
+          showSnackBarMessage(
+            title: 'Error',
+            message: 'Prompt Text is required for Face Swap',
             colorText: Colors.red,
           );
         }
@@ -139,18 +157,23 @@ class _ResultPreviewScreenState extends State<ResultPreviewScreen> {
         actions: [
           GetBuilder<ComparisonController>(
             builder: (comparisonController) {
-              return IconButton(
-                icon: Icon(
-                  comparisonController.isComparisonMode
-                      ? Icons.compare_arrows_rounded
-                      : Icons.compare_outlined,
-                  color: Colors.white,
-                ),
-                onPressed: comparisonController.toggleComparisonMode,
-              );
+              if (widget.comparisonMode ?? false) {
+                return IconButton(
+                  icon: Icon(
+                    comparisonController.isComparisonMode
+                        ? Icons.compare_arrows_rounded
+                        : Icons.compare_outlined,
+                    color: Colors.white,
+                  ),
+                  onPressed: comparisonController.toggleComparisonMode,
+                );
+              } else {
+                // Return an empty container if comparisonMode is false
+                return Container();
+              }
             },
           )
-        ],
+        ]
       ),
       body: SafeArea(
         child: Column(
