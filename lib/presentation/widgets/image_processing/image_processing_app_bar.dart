@@ -18,15 +18,17 @@ class ImageProcessingAppBar extends StatelessWidget implements PreferredSizeWidg
     return AppBar(
       title: Text(processingType.title),
       actions: [
-        Obx(() {
-          return controller.selectedImage.value != null &&
-              !controller.isLoading.value
-              ? IconButton(
-            icon: const Icon(Icons.clear),
-            onPressed: controller.clearCurrentImage,
-          )
-              : const SizedBox.shrink();
-        }),
+        GetBuilder<Base64ImageConversionController>(
+          builder: (controller) {
+            return controller.selectedImage != null &&
+                !controller.inProgress
+                ? IconButton(
+              icon: const Icon(Icons.clear),
+              onPressed: controller.clearCurrentImage,
+            )
+                : const SizedBox.shrink();
+          },
+        ),
       ],
     );
   }

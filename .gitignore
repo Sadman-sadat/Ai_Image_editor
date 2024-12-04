@@ -41,9 +41,3 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
-
-# temp add later
-drawing_screen.dart
-image_processing_canvas_control_widget.dart
-image_processing_canvas_drawing_widget.dart
-object_removal_controller.dart

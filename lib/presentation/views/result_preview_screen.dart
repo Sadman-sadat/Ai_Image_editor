@@ -3,9 +3,11 @@ import 'package:get/get.dart';
 import 'package:image_ai_editor/data/services/download_image_service.dart';
 import 'package:image_ai_editor/data/services/image_storage_service.dart';
 import 'package:image_ai_editor/presentation/controllers/background_removal_controller.dart';
+import 'package:image_ai_editor/presentation/controllers/comparison_controller.dart';
 import 'package:image_ai_editor/presentation/controllers/fetch_queued_image_controller.dart';
 import 'package:image_ai_editor/presentation/controllers/image_enhancement_controller.dart';
 import 'package:image_ai_editor/presentation/controllers/object_removal_controller.dart';
+import 'package:image_ai_editor/presentation/controllers/processing_controller.dart';
 import 'package:image_ai_editor/presentation/widgets/result_preview/result_preview_content.dart';
 import 'package:image_ai_editor/presentation/widgets/result_preview/result_preview_error.dart';
 import 'package:image_ai_editor/presentation/widgets/result_preview/result_preview_loading.dart';
@@ -15,11 +17,13 @@ import 'package:image_ai_editor/processing_type.dart';
 class ResultPreviewScreen extends StatefulWidget {
   final String base64Image;
   final ProcessingType processingType;
+  final String? maskImage;
 
   const ResultPreviewScreen({
     super.key,
     required this.base64Image,
     required this.processingType,
+    this.maskImage
   });
 
   @override
@@ -27,7 +31,7 @@ class ResultPreviewScreen extends StatefulWidget {
 }
 
 class _ResultPreviewScreenState extends State<ResultPreviewScreen> {
-  late final dynamic activeController;
+  late ProcessingController activeController;
   late final FetchQueuedImageController _fetchQueuedImageController;
   final DownloadImageService _downloadService = Get.find<DownloadImageService>();
 
@@ -39,7 +43,7 @@ class _ResultPreviewScreenState extends State<ResultPreviewScreen> {
     _startProcessing();
   }
 
-  dynamic _getControllerForType(ProcessingType type) {
+  ProcessingController _getControllerForType(ProcessingType type) {
     switch (type) {
       case ProcessingType.backgroundRemoval:
         return Get.find<BackgroundRemovalController>();
@@ -53,94 +57,36 @@ class _ResultPreviewScreenState extends State<ResultPreviewScreen> {
   void _startProcessing() {
     switch (widget.processingType) {
       case ProcessingType.backgroundRemoval:
-        activeController.removeBackground(widget.base64Image);
+        (activeController as BackgroundRemovalController).removeBackground(widget.base64Image);
+        break;
       case ProcessingType.imageEnhancement:
-        activeController.enhanceImage(widget.base64Image);
+        (activeController as ImageEnhancementController).enhanceImage(widget.base64Image);
+        break;
       case ProcessingType.objectRemoval:
-        activeController.removeObject(widget.base64Image);
+        if (widget.maskImage != null) {
+          (activeController as ObjectRemovalController).removeObject(widget.base64Image, widget.maskImage!);
+        } else {
+          showSnackBarMessage(
+            title: 'Error',
+            message: 'Mask image is required for object removal',
+            colorText: Colors.red,
+          );
+        }
+        break;
     }
   }
 
-
-  String get _activeImageUrl {
-    if (_fetchQueuedImageController.fetchedImageUrl.value.isNotEmpty) {
-      return _fetchQueuedImageController.fetchedImageUrl.value;
+  String _getActiveImageUrl() {
+    if (_fetchQueuedImageController.fetchedImageUrl.isNotEmpty) {
+      return _fetchQueuedImageController.fetchedImageUrl;
     }
-    return activeController.resultImageUrl.value;
+    return activeController.resultImageUrl;
   }
 
-  bool get _isProcessing =>
-      activeController.isLoading.value ||
-          _fetchQueuedImageController.isLoading.value ||
-          (activeController.trackedId.value.isNotEmpty && _activeImageUrl.isEmpty);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.processingType.processingText,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-        ),
-        centerTitle: true,
-        elevation: 0,
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Obx(() {
-              return _isProcessing
-                  ? LinearProgressIndicator(
-                backgroundColor: Colors.grey[200],
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  Theme.of(context).primaryColor,
-                ),
-              )
-                  : const SizedBox.shrink();
-            }),
-            Expanded(
-              child: Container(
-                margin: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
-                      spreadRadius: 1,
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Obx(() {
-                    if (_isProcessing) {
-                      return ResultPreviewLoading(
-                        isLoading: activeController.isLoading.value,
-                        processingText: widget.processingType.processingText,
-                        generationTime: activeController.generationTime.value,
-                      );
-                    }
-
-                    if (_activeImageUrl.isNotEmpty) {
-                      return ResultPreviewContent(
-                        afterImageUrl: _activeImageUrl,
-                        onRetry: _handleRetry,
-                        onDownload: _downloadImage,beforeImageUrl: widget.base64Image,
-                      );
-                    }
-
-                    return ResultPreviewError(onRetry: _handleRetry);
-                  }),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  bool _checkIsProcessing() {
+    return activeController.inProgress ||
+        _fetchQueuedImageController.inProgress ||
+        (activeController.trackedId.isNotEmpty && _getActiveImageUrl().isEmpty);
   }
 
   void _downloadImage(String imageUrl) async {
@@ -178,5 +124,102 @@ class _ResultPreviewScreenState extends State<ResultPreviewScreen> {
     );
 
     _startProcessing();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          widget.processingType.processingText,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+        ),
+        centerTitle: true,
+        elevation: 0,
+        actions: [
+          GetBuilder<ComparisonController>(
+            builder: (comparisonController) {
+              return IconButton(
+                icon: Icon(
+                  comparisonController.isComparisonMode
+                      ? Icons.compare_arrows_rounded
+                      : Icons.compare_outlined,
+                  color: Colors.white,
+                ),
+                onPressed: comparisonController.toggleComparisonMode,
+              );
+            },
+          )
+        ],
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            GetBuilder<ProcessingController>(
+              init: activeController,
+              builder: (_) => _checkIsProcessing()
+                  ? LinearProgressIndicator(
+                backgroundColor: Colors.grey[200],
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  Theme.of(context).primaryColor,
+                ),
+              )
+                  : const SizedBox.shrink(),
+            ),
+            Expanded(
+              child: Container(
+                margin: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1),
+                      spreadRadius: 1,
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: GetBuilder<FetchQueuedImageController>(
+                    init: _fetchQueuedImageController,
+                    builder: (fetchController) {
+                      return GetBuilder<ProcessingController>(
+                        init: activeController,
+                        builder: (controller) {
+                          final isProcessing = _checkIsProcessing();
+                          final activeImageUrl = _getActiveImageUrl();
+
+                          if (isProcessing) {
+                            return ResultPreviewLoading(
+                              isLoading: controller.inProgress,
+                              processingText: widget.processingType.processingText,
+                              generationTime: controller.generationTime,
+                            );
+                          }
+
+                          if (activeImageUrl.isNotEmpty) {
+                            return ResultPreviewContent(
+                              afterImageUrl: activeImageUrl,
+                              beforeImageUrl: widget.base64Image,
+                              onRetry: _handleRetry,
+                              onDownload: _downloadImage,
+                            );
+                          }
+
+                          return ResultPreviewError(onRetry: _handleRetry);
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
