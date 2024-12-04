@@ -1,7 +1,8 @@
 enum ProcessingType {
   backgroundRemoval,
   imageEnhancement,
-  objectRemoval;
+  objectRemoval,
+  headShotGen;
 
   String get title {
     switch (this) {
@@ -11,6 +12,8 @@ enum ProcessingType {
         return 'Image Enhancement';
       case ProcessingType.objectRemoval:
         return 'Object Removal';
+      case ProcessingType.headShotGen:
+        return 'Face Swap';
     }
   }
 
@@ -22,6 +25,8 @@ enum ProcessingType {
         return 'image_enhancement';
       case ProcessingType.objectRemoval:
         return 'Object Removal';
+      case ProcessingType.headShotGen:
+        return 'Face Swap';
     }
   }
 
@@ -33,6 +38,8 @@ enum ProcessingType {
         return 'Enhancing image...';
       case ProcessingType.objectRemoval:
         return 'Removing object...';
+      case ProcessingType.headShotGen:
+        return 'Swapping Face...';
     }
   }
 }
