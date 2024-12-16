@@ -16,7 +16,7 @@ class SearchFieldWidget extends StatelessWidget {
 
     return Padding(
       padding: EdgeInsets.symmetric(
-        horizontal: MediaQuery.of(context).size.width * 0.05,
+        horizontal: MediaQuery.of(context).size.width * 0.04,
         vertical: 8,
       ),
       child: ConstrainedBox(

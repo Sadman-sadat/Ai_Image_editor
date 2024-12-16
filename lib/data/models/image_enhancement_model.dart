@@ -3,12 +3,16 @@ class ImageEnhancementModel {
   final String image;
   final bool faceEnhance;
   final double scale;
+  final String? webhook;
+  final String? trackId;
 
   ImageEnhancementModel({
     required this.apiKey,
     required this.image,
     this.faceEnhance = false,
-    this.scale = 3,
+    this.scale = 2,
+    this.webhook,
+    this.trackId,
   });
 
   Map<String, dynamic> toJson() => {
@@ -16,5 +20,7 @@ class ImageEnhancementModel {
     'init_image': image,
     'face_enhance': faceEnhance,
     'scale': scale,
+    'webhook': webhook,
+    'track_id': trackId,
   };
 }

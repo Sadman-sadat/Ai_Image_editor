@@ -3,10 +3,12 @@ import 'package:get/get.dart';
 import 'package:image_ai_editor/controller_binder.dart';
 import 'package:image_ai_editor/presentation/utility/app_colors.dart';
 import 'package:image_ai_editor/presentation/utility/gradient_background_wrapper.dart';
+import 'package:image_ai_editor/presentation/views/avatar_gen_screen.dart';
 import 'package:image_ai_editor/presentation/views/background_removal_screen.dart';
 import 'package:image_ai_editor/presentation/views/head_shot_gen_screen.dart';
 import 'package:image_ai_editor/presentation/views/image_enhancement_screen.dart';
 import 'package:image_ai_editor/presentation/views/object_removal_screen.dart';
+import 'package:image_ai_editor/presentation/views/relighting_screen.dart';
 import 'package:image_ai_editor/presentation/views/splash_screen.dart';
 
 class AIImageEditor extends StatefulWidget {
@@ -55,6 +57,8 @@ class _AIImageEditorState extends State<AIImageEditor> {
       getPages: [
         GetPage(name: '/background_removal', page: () => const BackgroundRemovalScreen()),
         GetPage(name: '/head_shot_gen', page: () => const HeadShotGenScreen()),
+        GetPage(name: '/avatar_gen', page: () => const AvatarGenScreen()),
+        GetPage(name: '/relighting', page: () => const RelightingScreen()),
         GetPage(name: '/object_removal', page: () => const ObjectRemovalScreen()),
         GetPage(name: '/image_enhancement', page: () => const ImageEnhancementScreen()),
       ],

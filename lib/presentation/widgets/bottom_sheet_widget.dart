@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_ai_editor/presentation/views/avatar_gen_screen.dart';
 import 'package:image_ai_editor/presentation/views/background_removal_screen.dart';
+import 'package:image_ai_editor/presentation/views/head_shot_gen_screen.dart';
 import 'package:image_ai_editor/presentation/views/image_enhancement_screen.dart';
 import 'package:image_ai_editor/presentation/views/object_removal_screen.dart';
-import 'package:image_ai_editor/presentation/widgets/snack_bar_message.dart';
+import 'package:image_ai_editor/presentation/views/relighting_screen.dart';
 
 void showCustomBottomSheet(BuildContext context) {
   final screenHeight = MediaQuery.of(context).size.height;
@@ -53,13 +55,24 @@ void showCustomBottomSheet(BuildContext context) {
                     },
                   ),
                   ListTile(
-                    leading: const Icon(Icons.tag_faces),
-                    title: const Text('Face Swap'),
+                    leading: const Icon(Icons.emoji_people_outlined),
+                    title: const Text('Avatar Generator'),
                     onTap: () {
-                      showSnackBarMessage(
-                        message: 'Coming soon',
-                        colorText: Colors.black,
-                      );
+                      Get.to(() => const AvatarGenScreen());
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.light_outlined),
+                    title: const Text('Relighting'),
+                    onTap: () {
+                      Get.to(() => const RelightingScreen());
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.tag_faces),
+                    title: const Text('Face Gen'),
+                    onTap: () {
+                      Get.to(() => const HeadShotGenScreen());
                     },
                   ),
                 ],

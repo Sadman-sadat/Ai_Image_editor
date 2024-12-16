@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_ai_editor/data/services/download_image_service.dart';
 import 'package:image_ai_editor/data/services/image_storage_service.dart';
+import 'package:image_ai_editor/presentation/controllers/avatar_gen_controller.dart';
 import 'package:image_ai_editor/presentation/controllers/background_removal_controller.dart';
 import 'package:image_ai_editor/presentation/controllers/comparison_controller.dart';
 import 'package:image_ai_editor/presentation/controllers/fetch_queued_image_controller.dart';
@@ -9,6 +10,7 @@ import 'package:image_ai_editor/presentation/controllers/head_shot_gen_controlle
 import 'package:image_ai_editor/presentation/controllers/image_enhancement_controller.dart';
 import 'package:image_ai_editor/presentation/controllers/object_removal_controller.dart';
 import 'package:image_ai_editor/presentation/controllers/processing_controller.dart';
+import 'package:image_ai_editor/presentation/controllers/relighting_controller.dart';
 import 'package:image_ai_editor/presentation/widgets/result_preview/result_preview_content.dart';
 import 'package:image_ai_editor/presentation/widgets/result_preview/result_preview_error.dart';
 import 'package:image_ai_editor/presentation/widgets/result_preview/result_preview_loading.dart';
@@ -20,16 +22,16 @@ class ResultPreviewScreen extends StatefulWidget {
   final ProcessingType processingType;
   final String? maskImage;
   final String? textPrompt;
+  final String? positionLighting;
   final bool? comparisonMode;
 
-  const ResultPreviewScreen({
-    super.key,
-    required this.base64Image,
-    required this.processingType,
-    this.maskImage,
-    this.textPrompt,
-    this.comparisonMode
-  });
+  const ResultPreviewScreen(
+      {super.key,
+      required this.base64Image,
+      required this.processingType,
+      this.maskImage,
+      this.textPrompt,
+      this.comparisonMode, this.positionLighting});
 
   @override
   State<ResultPreviewScreen> createState() => _ResultPreviewScreenState();
@@ -38,7 +40,8 @@ class ResultPreviewScreen extends StatefulWidget {
 class _ResultPreviewScreenState extends State<ResultPreviewScreen> {
   late ProcessingController activeController;
   late final FetchQueuedImageController _fetchQueuedImageController;
-  final DownloadImageService _downloadService = Get.find<DownloadImageService>();
+  final DownloadImageService _downloadService =
+      Get.find<DownloadImageService>();
 
   @override
   void initState() {
@@ -58,20 +61,35 @@ class _ResultPreviewScreenState extends State<ResultPreviewScreen> {
         return Get.find<ObjectRemovalController>();
       case ProcessingType.headShotGen:
         return Get.find<HeadShotGenController>();
+      case ProcessingType.relighting:
+        return Get.find<RelightingController>();
+      case ProcessingType.avatarGen:
+        return Get.find<AvatarGenController>();
     }
   }
 
   void _startProcessing() {
     switch (widget.processingType) {
       case ProcessingType.backgroundRemoval:
-        (activeController as BackgroundRemovalController).removeBackground(widget.base64Image);
+        (activeController as BackgroundRemovalController)
+            .removeBackground(widget.base64Image);
         break;
       case ProcessingType.imageEnhancement:
-        (activeController as ImageEnhancementController).enhanceImage(widget.base64Image);
+        if (widget.base64Image.isNotEmpty) {
+          (activeController as ImageEnhancementController)
+              .enhanceImage(widget.base64Image);
+        } else {
+          showSnackBarMessage(
+            title: 'Error',
+            message: 'Base Image is required for Image Enhancement',
+            colorText: Colors.red,
+          );
+        }
         break;
       case ProcessingType.objectRemoval:
         if (widget.maskImage != null) {
-          (activeController as ObjectRemovalController).removeObject(widget.base64Image, widget.maskImage!);
+          (activeController as ObjectRemovalController)
+              .removeObject(widget.base64Image, widget.maskImage!);
         } else {
           showSnackBarMessage(
             title: 'Error',
@@ -82,15 +100,38 @@ class _ResultPreviewScreenState extends State<ResultPreviewScreen> {
         break;
       case ProcessingType.headShotGen:
         if (widget.textPrompt != null) {
-          (activeController as HeadShotGenController).generateHeadShot(widget.base64Image, widget.textPrompt!);
+          (activeController as HeadShotGenController)
+              .generateHeadShot(widget.base64Image, widget.textPrompt!);
         } else {
           showSnackBarMessage(
             title: 'Error',
-            message: 'Prompt Text is required for Face Swap',
+            message: 'Prompt Text is required for Face gen',
             colorText: Colors.red,
           );
         }
         break;
+      case ProcessingType.relighting:
+        if (widget.textPrompt != null) {
+          (activeController as RelightingController)
+              .generateRelighting(widget.base64Image, widget.positionLighting!, widget.textPrompt!);
+        } else {
+          showSnackBarMessage(
+            title: 'Error',
+            message: 'Prompt Text is required for Relighting',
+            colorText: Colors.red,
+          );
+        }
+      case ProcessingType.avatarGen:
+      if (widget.textPrompt != null) {
+        (activeController as AvatarGenController)
+            .generateAvatar(widget.base64Image, widget.textPrompt!);
+      } else {
+        showSnackBarMessage(
+          title: 'Error',
+          message: 'Prompt Text is required for Avatar Generator',
+          colorText: Colors.red,
+        );
+      }
     }
   }
 
@@ -148,33 +189,32 @@ class _ResultPreviewScreenState extends State<ResultPreviewScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          widget.processingType.processingText,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-        ),
-        centerTitle: true,
-        elevation: 0,
-        actions: [
-          GetBuilder<ComparisonController>(
-            builder: (comparisonController) {
-              if (widget.comparisonMode ?? false) {
-                return IconButton(
-                  icon: Icon(
-                    comparisonController.isComparisonMode
-                        ? Icons.compare_arrows_rounded
-                        : Icons.compare_outlined,
-                    color: Colors.white,
-                  ),
-                  onPressed: comparisonController.toggleComparisonMode,
-                );
-              } else {
-                // Return an empty container if comparisonMode is false
-                return Container();
-              }
-            },
-          )
-        ]
-      ),
+          title: Text(
+            widget.processingType.processingText,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+          ),
+          centerTitle: true,
+          elevation: 0,
+          actions: [
+            GetBuilder<ComparisonController>(
+              builder: (comparisonController) {
+                if (widget.comparisonMode ?? false) {
+                  return IconButton(
+                    icon: Icon(
+                      comparisonController.isComparisonMode
+                          ? Icons.compare_arrows_rounded
+                          : Icons.compare_outlined,
+                      color: Colors.white,
+                    ),
+                    onPressed: comparisonController.toggleComparisonMode,
+                  );
+                } else {
+                  // Return an empty container if comparisonMode is false
+                  return Container();
+                }
+              },
+            )
+          ]),
       body: SafeArea(
         child: Column(
           children: [
@@ -182,11 +222,11 @@ class _ResultPreviewScreenState extends State<ResultPreviewScreen> {
               init: activeController,
               builder: (_) => _checkIsProcessing()
                   ? LinearProgressIndicator(
-                backgroundColor: Colors.grey[200],
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  Theme.of(context).primaryColor,
-                ),
-              )
+                      backgroundColor: Colors.grey[200],
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Theme.of(context).primaryColor,
+                      ),
+                    )
                   : const SizedBox.shrink(),
             ),
             Expanded(
@@ -218,7 +258,8 @@ class _ResultPreviewScreenState extends State<ResultPreviewScreen> {
                           if (isProcessing) {
                             return ResultPreviewLoading(
                               isLoading: controller.inProgress,
-                              processingText: widget.processingType.processingText,
+                              processingText:
+                                  widget.processingType.processingText,
                               generationTime: controller.generationTime,
                             );
                           }
@@ -231,7 +272,6 @@ class _ResultPreviewScreenState extends State<ResultPreviewScreen> {
                               onDownload: _downloadImage,
                             );
                           }
-
                           return ResultPreviewError(onRetry: _handleRetry);
                         },
                       );

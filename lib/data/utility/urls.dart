@@ -6,6 +6,8 @@ class Urls{
   static const String imageEnhancement = '$_baseUrl/super_resolution';
   static const String objectRemoval = '$_baseUrl/object_removal';
   static const String headShotGen = '$_baseUrl/head_shot';
+  static const String avatarGen = '$_baseUrl/avatar_gen';
+  static const String relighting = '$_baseUrl/relighting';
 
   static String fetchQueued(String queuedId) => 'https://modelslab.com/api/v6/realtime/fetch/$queuedId';
 

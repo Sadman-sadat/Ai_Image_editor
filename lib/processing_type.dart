@@ -2,7 +2,9 @@ enum ProcessingType {
   backgroundRemoval,
   imageEnhancement,
   objectRemoval,
-  headShotGen;
+  headShotGen,
+  relighting,
+  avatarGen;
 
   String get title {
     switch (this) {
@@ -13,7 +15,11 @@ enum ProcessingType {
       case ProcessingType.objectRemoval:
         return 'Object Removal';
       case ProcessingType.headShotGen:
-        return 'Face Swap';
+        return 'Face gen';
+      case ProcessingType.relighting:
+        return 'Relighting';
+      case ProcessingType.avatarGen:
+        return 'Avatar Generation';
     }
   }
 
@@ -26,7 +32,11 @@ enum ProcessingType {
       case ProcessingType.objectRemoval:
         return 'Object Removal';
       case ProcessingType.headShotGen:
-        return 'Face Swap';
+        return 'Face gen';
+      case ProcessingType.relighting:
+        return 'Relighting';
+      case ProcessingType.avatarGen:
+        return 'Avatar Generation';
     }
   }
 
@@ -39,7 +49,11 @@ enum ProcessingType {
       case ProcessingType.objectRemoval:
         return 'Removing object...';
       case ProcessingType.headShotGen:
-        return 'Swapping Face...';
+        return 'Generating Face...';
+      case ProcessingType.relighting:
+        return 'Relighting...';
+      case ProcessingType.avatarGen:
+        return 'Generating Avatar...';
     }
   }
 }

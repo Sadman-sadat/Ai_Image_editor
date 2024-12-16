@@ -79,7 +79,7 @@ class _ImageProcessingScreenState extends State<ImageProcessingScreen> {
                     ),
                   ),
                   ImageProcessingActionButtons(
-                    controller: controller,
+                    imageController: controller,
                     processingType: widget.processingType,
                   ),
                 ],

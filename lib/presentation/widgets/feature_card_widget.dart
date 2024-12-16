@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_ai_editor/presentation/utility/app_colors.dart';
 
 class FeatureCardWidget extends StatelessWidget {
   final String imageUrl;
@@ -20,7 +21,8 @@ class FeatureCardWidget extends StatelessWidget {
 
         return Card(
           elevation: 3,
-          color: Colors.white,
+          color: Colors.purple.shade800.withOpacity(0.9),
+          //color: Colors.white,
           surfaceTintColor: Colors.white,
           clipBehavior: Clip.antiAlias, // Added to ensure clean edges
           shape: RoundedRectangleBorder(
@@ -71,8 +73,8 @@ class FeatureCardWidget extends StatelessWidget {
           maxLines: 1, // Changed to 1 line to save space
           style: const TextStyle(
             overflow: TextOverflow.ellipsis,
-            fontSize: 13, // Slightly reduced font size
-            color: Colors.black,
+            fontSize: 14, // Slightly reduced font size
+            //color: Colors.black,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -81,7 +83,9 @@ class FeatureCardWidget extends StatelessWidget {
       ElevatedButton(
         onPressed: onButtonPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.grey[300],
+          backgroundColor: AppColors.primaryColor,
+          // backgroundColor: Colors.grey[300],
+          // foregroundColor: Colors.black,
           foregroundColor: Colors.black,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), // Reduced padding
           minimumSize: const Size(60, 24), // Smaller minimum size

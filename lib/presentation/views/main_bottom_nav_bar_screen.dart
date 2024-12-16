@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_ai_editor/presentation/controllers/main_bottom_nav_bar_controller.dart';
@@ -6,6 +5,7 @@ import 'package:image_ai_editor/presentation/utility/app_colors.dart';
 import 'package:image_ai_editor/presentation/views/home_screen.dart';
 import 'package:image_ai_editor/presentation/views/result_preview_screen.dart';
 import 'package:image_ai_editor/presentation/widgets/bottom_sheet_widget.dart';
+import 'package:image_ai_editor/processing_type.dart';
 
 class MainBottomNavBarScreen extends StatelessWidget {
   MainBottomNavBarScreen({super.key});
@@ -14,7 +14,7 @@ class MainBottomNavBarScreen extends StatelessWidget {
 
   final List<Widget> _screens = [
     const HomeScreen(),
-    //const ResultPreviewScreen(base64Image: '',),
+    const ResultPreviewScreen(base64Image: '', processingType: ProcessingType.backgroundRemoval,),
   ];
 
   void _onNavBarTapped(int index) {

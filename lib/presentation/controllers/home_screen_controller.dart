@@ -8,8 +8,18 @@ class HomeScreenController extends GetxController {
       'screen': 'background_removal',
     },
     {
+      'imageUrl': 'https://ikancorp.com/prod1/wp-content/uploads/2021/01/g6nco7j51FWksJzLk7v098tJdVMJEqhU1611237455.jpg',
+      'title': 'Relighting',
+      'screen': 'relighting',
+    },
+    {
+      'imageUrl': 'https://krikey-ai.ghost.io/content/images/size/w1000/2024/08/Generate-AI-Avatar-with-tools-like-Krikey-AI-to-make-animated-videos-with-voice-AI.jpg',
+      'title': 'Avatar Gen',
+      'screen': 'avatar_gen',
+    },
+    {
       'imageUrl': 'https://www.ifoto.ai/_nuxt/img/face-replace.0143a8f.webp',
-      'title': 'Face Swap',
+      'title': 'Face Gen',
       'screen': 'head_shot_gen',
     },
     {
@@ -59,6 +69,12 @@ class HomeScreenController extends GetxController {
         break;
       case 'head_shot_gen':
         Get.toNamed('/head_shot_gen');
+        break;
+      case 'relighting':
+        Get.toNamed('/relighting');
+        break;
+      case 'avatar_gen':
+        Get.toNamed('/avatar_gen');
         break;
       case 'object_removal':
         Get.toNamed('/object_removal');
