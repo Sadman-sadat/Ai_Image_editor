@@ -122,7 +122,7 @@ class MaskDrawingController extends GetxController {
       final maskPaint = Paint()
         ..color = Colors.white
         ..strokeCap = StrokeCap.round
-        ..strokeWidth = 20.0 // Adjust this value if needed
+        ..strokeWidth = 50.0 // Adjust this value if needed
         ..style = PaintingStyle.stroke;
 
       // Draw the mask lines directly on the full-size canvas

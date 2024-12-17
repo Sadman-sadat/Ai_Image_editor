@@ -4,10 +4,11 @@ import 'package:image_ai_editor/data/services/image_storage_service.dart';
 import 'package:image_ai_editor/data/services/relighting_service.dart';
 import 'package:image_ai_editor/data/utility/urls.dart';
 import 'package:image_ai_editor/presentation/controllers/fetch_queued_image_controller.dart';
+import 'package:image_ai_editor/presentation/controllers/polling_result_controller.dart';
 import 'package:image_ai_editor/presentation/controllers/processing_controller.dart';
 import 'package:image_ai_editor/processing_type.dart';
 
-class RelightingController extends ProcessingController {
+class RelightingController extends ProcessingController with PollingResultMixin {
   final RelightingService _relightingService = RelightingService();
   final ImageStorageService _storageService = Get.find();
   final FetchQueuedImageController _fetchController = Get.find();
@@ -114,40 +115,13 @@ class RelightingController extends ProcessingController {
     return isSuccess;
   }
 
-  Future<void> _startPollingForResult(String initImage, String trackerId) async {
-    int maxAttempts = 20;
-    int attempts = 0;
-    bool imageFound = false;
-
-    while (attempts < maxAttempts && !imageFound) {
-      bool fetchResult = await _fetchController.fetchQueuedImage(
-        trackerId,
-        base64Image: initImage,
-        processingType: ProcessingType.relighting.storageKey,
-      );
-
-      print('Fetch attempt result: $fetchResult'); // Diagnostic print
-      print('Fetched Image URL: ${_fetchController.fetchedImageUrl}'); // Diagnostic print
-
-      if (_fetchController.fetchedImageUrl.isNotEmpty) {
-        updateState(
-          resultImageUrl: _fetchController.fetchedImageUrl,
-          inProgress: false,
-        );
-        imageFound = true;
-        break;
-      }
-
-      await Future.delayed(Duration(seconds: 3 * (attempts + 1)));
-      attempts++;
-    }
-
-    if (!imageFound) {
-      updateState(
-        errorMessage: 'Could not retrieve processed image after $maxAttempts attempts',
-        inProgress: false,
-      );
-    }
+  Future<void> _startPollingForResult(String base64Image, String trackerId) async {
+    await startPollingForResult(
+      controller: this,
+      base64Image: base64Image,
+      trackerId: trackerId,
+      processingType: ProcessingType.backgroundRemoval,
+    );
   }
 
   @override

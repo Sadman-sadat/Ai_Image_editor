@@ -4,10 +4,11 @@ import 'package:image_ai_editor/data/services/image_enhancement_service.dart';
 import 'package:image_ai_editor/data/services/image_storage_service.dart';
 import 'package:image_ai_editor/data/utility/urls.dart';
 import 'package:image_ai_editor/presentation/controllers/fetch_queued_image_controller.dart';
+import 'package:image_ai_editor/presentation/controllers/polling_result_controller.dart';
 import 'package:image_ai_editor/presentation/controllers/processing_controller.dart';
 import 'package:image_ai_editor/processing_type.dart';
 
-class ImageEnhancementController extends ProcessingController {
+class ImageEnhancementController extends ProcessingController with PollingResultMixin {
   final ImageEnhancementService _imageEnhancementService = ImageEnhancementService();
   final ImageStorageService _storageService = Get.find();
   final FetchQueuedImageController _fetchController = Get.find();
@@ -98,46 +99,12 @@ class ImageEnhancementController extends ProcessingController {
   }
 
   Future<void> _startPollingForResult(String base64Image, String trackerId) async {
-    print('Starting polling for trackerId: $trackerId'); // Diagnostic print
-
-    int maxAttempts = 20; // Increased number of attempts
-    int attempts = 0;
-    bool imageFound = false;
-
-    while (attempts < maxAttempts && !imageFound) {
-      print('Polling attempt $attempts'); // Diagnostic print
-
-      // Try to fetch the queued image
-      bool fetchResult = await _fetchController.fetchQueuedImage(
-        trackerId,
-        base64Image: base64Image,
-        processingType: ProcessingType.imageEnhancement.storageKey,
-      );
-
-      print('Fetch attempt result: $fetchResult'); // Diagnostic print
-      print('Fetched Image URL: ${_fetchController.fetchedImageUrl}'); // Diagnostic print
-
-      if (_fetchController.fetchedImageUrl.isNotEmpty) {
-        updateState(
-          resultImageUrl: _fetchController.fetchedImageUrl,
-          inProgress: false,
-        );
-        imageFound = true;
-        break;
-      }
-
-      // Exponential backoff: wait longer between attempts
-      await Future.delayed(Duration(seconds: 3 * (attempts + 1)));
-      attempts++;
-    }
-
-    if (!imageFound) {
-      updateState(
-        errorMessage: 'Could not retrieve processed image after $maxAttempts attempts',
-        inProgress: false,
-      );
-      print('Failed to retrieve image after multiple attempts'); // Diagnostic print
-    }
+    await startPollingForResult(
+      controller: this,
+      base64Image: base64Image,
+      trackerId: trackerId,
+      processingType: ProcessingType.backgroundRemoval,
+    );
   }
 
   @override
