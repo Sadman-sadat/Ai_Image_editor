@@ -5,6 +5,7 @@ import 'package:image_ai_editor/data/services/image_storage_service.dart';
 import 'package:image_ai_editor/presentation/controllers/avatar_gen_controller.dart';
 import 'package:image_ai_editor/presentation/controllers/background_removal_controller.dart';
 import 'package:image_ai_editor/presentation/controllers/comparison_controller.dart';
+import 'package:image_ai_editor/presentation/controllers/face_swap_controller.dart';
 import 'package:image_ai_editor/presentation/controllers/fetch_queued_image_controller.dart';
 import 'package:image_ai_editor/presentation/controllers/head_shot_gen_controller.dart';
 import 'package:image_ai_editor/presentation/controllers/image_enhancement_controller.dart';
@@ -65,6 +66,8 @@ class _ResultPreviewScreenState extends State<ResultPreviewScreen> {
         return Get.find<RelightingController>();
       case ProcessingType.avatarGen:
         return Get.find<AvatarGenController>();
+      case ProcessingType.faceSwap:
+        return Get.find<FaceSwapController>();
     }
   }
 
@@ -132,6 +135,10 @@ class _ResultPreviewScreenState extends State<ResultPreviewScreen> {
           colorText: Colors.red,
         );
       }
+      case ProcessingType.faceSwap:
+        (activeController as FaceSwapController)
+            .swapFace(widget.maskImage!, widget.base64Image);
+        break;
     }
   }
 

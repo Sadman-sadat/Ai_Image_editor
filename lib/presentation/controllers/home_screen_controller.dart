@@ -8,6 +8,11 @@ class HomeScreenController extends GetxController {
       'screen': 'background_removal',
     },
     {
+      'imageUrl': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ3Aky-4DBKvhkapPACIOOajqox5yNJqBb-AQ&s',
+      'title': 'Face Swap',
+      'screen': 'face_swap',
+    },
+    {
       'imageUrl': 'https://ikancorp.com/prod1/wp-content/uploads/2021/01/g6nco7j51FWksJzLk7v098tJdVMJEqhU1611237455.jpg',
       'title': 'Relighting',
       'screen': 'relighting',
@@ -66,6 +71,9 @@ class HomeScreenController extends GetxController {
     switch (screenName) {
       case 'background_removal':
         Get.toNamed('/background_removal');
+        break;
+      case 'face_swap':
+        Get.toNamed('/face_swap');
         break;
       case 'head_shot_gen':
         Get.toNamed('/head_shot_gen');

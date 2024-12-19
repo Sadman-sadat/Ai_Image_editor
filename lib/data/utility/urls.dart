@@ -9,6 +9,8 @@ class Urls{
   static const String avatarGen = '$_baseUrl/avatar_gen';
   static const String relighting = '$_baseUrl/relighting';
 
+  static const String faceSwap = 'https://modelslab.com/api/v6/deepfake/multiple_face_swap';
+
   static String fetchQueued(String queuedId) => 'https://modelslab.com/api/v6/realtime/fetch/$queuedId';
 
   static const String base64Conversion = 'https://modelslab.com/api/v3/base64_crop';
