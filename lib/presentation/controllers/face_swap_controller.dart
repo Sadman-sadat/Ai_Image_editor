@@ -61,10 +61,11 @@ class FaceSwapController extends ProcessingController with PollingResultMixin {
         return true;
       }
 
+      //swap init and target image places
       FaceSwapModel model = FaceSwapModel(
         apiKey: Urls.api_Key,
-        initImage: base64Original,
-        targetImage: base64Target,
+        initImage: base64Target,
+        targetImage: base64Original,
       );
 
       Map response = await _faceSwapService.swapFace(model);

@@ -5,7 +5,6 @@ import 'package:image_ai_editor/presentation/controllers/image_processing_carous
 
 class ImageProcessingCarousel extends StatelessWidget {
   ImageProcessingCarousel({super.key}) {
-    // Initialize the controller when the widget is created
     Get.find<ImageProcessingCarouselController>();
   }
 
@@ -15,47 +14,87 @@ class ImageProcessingCarousel extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         GetBuilder<ImageProcessingCarouselController>(
-            builder: (controller) {
-              return CarouselSlider.builder(
-                itemCount: controller.carouselImages.length,
-                itemBuilder: (context, index, realIndex) {
-                  return GestureDetector(
-                    onTap: () {
-                      controller.setSelectedImage(controller.carouselImages[index]);
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 5),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: controller.selectedImage == controller.carouselImages[index]
-                              ? Colors.blue
-                              : Colors.grey,
-                          width: controller.selectedImage == controller.carouselImages[index] ? 3 : 1,
-                        ),
-                        image: DecorationImage(
-                          image: NetworkImage(controller.carouselImages[index]),
-                          fit: BoxFit.cover,
-                        ),
+          builder: (controller) {
+            return CarouselSlider.builder(
+              carouselController: controller.carouselController,
+              itemCount: controller.carouselImages.length,
+              itemBuilder: (context, index, realIndex) {
+                return GestureDetector(
+                  onTap: () {
+                    controller.setSelectedImage(
+                        controller.carouselImages[index]);
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 5),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: controller.selectedImage ==
+                            controller.carouselImages[index]
+                            ? Colors.blue
+                            : Colors.grey,
+                        width: controller.selectedImage ==
+                            controller.carouselImages[index]
+                            ? 3
+                            : 1,
+                      ),
+                      image: DecorationImage(
+                        image: NetworkImage(controller.carouselImages[index]),
+                        fit: BoxFit.cover,
                       ),
                     ),
-                  );
+                  ),
+                );
+              },
+              options: CarouselOptions(
+                height: 450,
+                enlargeCenterPage: true,
+                autoPlay: false,
+                aspectRatio: 16 / 9,
+                onPageChanged: (index, reason) {
+                  controller.updateSelectedIndex(index);
                 },
-                options: CarouselOptions(
-                  height: 450,
-                  enlargeCenterPage: true,
-                  autoPlay: false,
-                  aspectRatio: 16/9,
-                  onPageChanged: (index, reason) {
-                    controller.setSelectedImage(controller.carouselImages[index]);
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 20),
+        // Selectable Dot Indicators
+        GetBuilder<ImageProcessingCarouselController>(
+          builder: (controller) {
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: controller.carouselImages.asMap().entries.map((entry) {
+                int index = entry.key;
+                return GestureDetector(
+                  onTap: () {
+                    // Navigate to selected image and update carousel position
+                    controller.navigateToImage(index);
                   },
-                ),
-              );
-            }
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    width: controller.selectedImage ==
+                        controller.carouselImages[index]
+                        ? 16
+                        : 8,
+                    height: 8,
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(4),
+                      color: controller.selectedImage ==
+                          controller.carouselImages[index]
+                          ? Colors.blue.shade700
+                          : Colors.blue.shade100,
+                    ),
+                  ),
+                );
+              }).toList(),
+            );
+          },
         ),
         const SizedBox(height: 20),
         const Text(
-          'Select an image for face swap',
+          'Swap and Select an image to swap face',
           style: TextStyle(
             fontSize: 18,
             color: Colors.grey,

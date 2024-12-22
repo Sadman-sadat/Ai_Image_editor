@@ -137,7 +137,7 @@ class _ResultPreviewScreenState extends State<ResultPreviewScreen> {
       }
       case ProcessingType.faceSwap:
         (activeController as FaceSwapController)
-            .swapFace(widget.maskImage!, widget.base64Image);
+            .swapFace(widget.base64Image, widget.maskImage!);
         break;
     }
   }
@@ -211,7 +211,7 @@ class _ResultPreviewScreenState extends State<ResultPreviewScreen> {
                       comparisonController.isComparisonMode
                           ? Icons.compare_arrows_rounded
                           : Icons.compare_outlined,
-                      color: Colors.white,
+                      color: Colors.black,
                     ),
                     onPressed: comparisonController.toggleComparisonMode,
                   );
