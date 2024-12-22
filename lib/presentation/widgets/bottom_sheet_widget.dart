@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_ai_editor/presentation/views/avatar_gen_screen.dart';
 import 'package:image_ai_editor/presentation/views/background_removal_screen.dart';
+import 'package:image_ai_editor/presentation/views/face_swap_screen.dart';
 import 'package:image_ai_editor/presentation/views/head_shot_gen_screen.dart';
 import 'package:image_ai_editor/presentation/views/image_enhancement_screen.dart';
 import 'package:image_ai_editor/presentation/views/object_removal_screen.dart';
@@ -73,6 +74,13 @@ void showCustomBottomSheet(BuildContext context) {
                     title: const Text('Face Gen'),
                     onTap: () {
                       Get.to(() => const HeadShotGenScreen());
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.face_retouching_natural_outlined),
+                    title: const Text('Face Swap'),
+                    onTap: () {
+                      Get.to(() => const FaceSwapScreen());
                     },
                   ),
                 ],
