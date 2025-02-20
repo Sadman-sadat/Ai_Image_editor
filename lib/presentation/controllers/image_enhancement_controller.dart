@@ -50,7 +50,7 @@ class ImageEnhancementController extends ProcessingController with PollingResult
         final imageUrl = response['output'];
 
         // ✅ Wait before assigning URL
-        await Future.delayed(Duration(seconds: 5));  // Adjust delay if needed
+        await Future.delayed(Duration(seconds: 10));  // Adjust delay if needed
 
         updateState(
           resultImageUrl: imageUrl,
