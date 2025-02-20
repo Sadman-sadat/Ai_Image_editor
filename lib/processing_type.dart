@@ -1,9 +1,12 @@
+import 'package:appear_ai_image_editor/presentation/utility/processing_steps.dart';
+
 enum ProcessingType {
   backgroundRemoval,
   imageEnhancement,
   objectRemoval,
   headShotGen,
   relighting,
+  interiorDesignGen,
   avatarGen,
   faceSwap;
 
@@ -23,6 +26,8 @@ enum ProcessingType {
         return 'Avatar Generation';
       case ProcessingType.faceSwap:
         return 'Face Swap';
+      case ProcessingType.interiorDesignGen:
+        return 'Interior Design Generation';
     }
   }
 
@@ -33,15 +38,17 @@ enum ProcessingType {
       case ProcessingType.imageEnhancement:
         return 'image_enhancement';
       case ProcessingType.objectRemoval:
-        return 'Object Removal';
+        return 'object_removal';
       case ProcessingType.headShotGen:
-        return 'Face gen';
+        return 'face_gen';
       case ProcessingType.relighting:
-        return 'Relighting';
+        return 'relighting';
       case ProcessingType.avatarGen:
-        return 'Avatar Generation';
+        return 'avatar_gen';
       case ProcessingType.faceSwap:
-        return 'Face Swap';
+        return 'face_swap';
+      case ProcessingType.interiorDesignGen:
+        return 'interior_design_gen';
     }
   }
 
@@ -61,6 +68,29 @@ enum ProcessingType {
         return 'Generating Avatar...';
       case ProcessingType.faceSwap:
         return 'Swapping Face...';
+      case ProcessingType.interiorDesignGen:
+        return 'Generating Interior...';
+    }
+  }
+
+  List<String> get processingSteps {
+    switch (this) {
+      case ProcessingType.backgroundRemoval:
+        return ProcessingSteps.steps['backgroundRemoval']!;
+      case ProcessingType.imageEnhancement:
+        return ProcessingSteps.steps['imageEnhancement']!;
+      case ProcessingType.objectRemoval:
+        return ProcessingSteps.steps['objectRemoval']!;
+      case ProcessingType.headShotGen:
+        return ProcessingSteps.steps['headShotGen']!;
+      case ProcessingType.relighting:
+        return ProcessingSteps.steps['relighting']!;
+      case ProcessingType.avatarGen:
+        return ProcessingSteps.steps['avatarGen']!;
+      case ProcessingType.faceSwap:
+        return ProcessingSteps.steps['faceSwap']!;
+      case ProcessingType.interiorDesignGen:
+        return ProcessingSteps.steps['interiorDesignGen']!;
     }
   }
 }

@@ -1,8 +1,10 @@
+import 'package:appear_ai_image_editor/presentation/widgets/ads/interstitial_ad_widget.dart';
+import 'package:appear_ai_image_editor/presentation/widgets/result_preview/result_preview_action_buttons.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:image_ai_editor/presentation/controllers/comparison_controller.dart';
-import 'package:image_ai_editor/presentation/widgets/result_preview/result_preview_comparison_overlay.dart';
-import 'package:image_ai_editor/presentation/widgets/result_preview/result_preview_error.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/result_preview/result_screen_image_comparison_controller.dart';
+import 'package:appear_ai_image_editor/presentation/widgets/result_preview/result_preview_comparison_overlay.dart';
+import 'package:appear_ai_image_editor/presentation/widgets/result_preview/result_preview_error.dart';
 
 class ResultPreviewContent extends StatelessWidget {
   final String beforeImageUrl;
@@ -27,31 +29,39 @@ class ResultPreviewContent extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // After Image (Full Background)
               Center(
                 child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  child: Image.network(
-                    afterImageUrl,
-                    key: _imageKey,
-                    fit: BoxFit.contain,
-                    loadingBuilder: _imageLoadingBuilder,
-                    errorBuilder: (_, __, ___) =>
-                        ResultPreviewError(onRetry: onRetry),
+                  physics: const NeverScrollableScrollPhysics(),
+                  child: Container(
+                    constraints: const BoxConstraints(
+                      maxWidth: double.infinity,
+                      maxHeight: double.infinity,
+                    ),
+                    child: Image.network(
+                      afterImageUrl,
+                      key: _imageKey,
+                      fit: BoxFit.contain,
+                      loadingBuilder: _imageLoadingBuilder,
+                      errorBuilder: (context, error, stackTrace) {
+                        print("Error loading image: $afterImageUrl");
+                        print("Error details: $error");
+                        return ResultPreviewError(onRetry: onRetry);
+                      },
+                    ),
                   ),
                 ),
               ),
-
-              // Before Image (Clipped)
               GetBuilder<ComparisonController>(
                 builder: (comparisonController) {
                   return Center(
                     child: SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
+                      physics: const NeverScrollableScrollPhysics(),
                       child: AnimatedOpacity(
-                        opacity: comparisonController.isComparisonMode ? 1.0 : 0.0,
+                        opacity: comparisonController.isComparisonMode
+                            ? 1.0
+                            : 0.0,
                         duration: const Duration(milliseconds: 300),
-                        child: ResultPreviewComparisonOverlay(
+                        child: ResultPreviewComparisonOverlay (
                           imageKey: _imageKey,
                           beforeImageUrl: beforeImageUrl,
                           onRetry: onRetry,
@@ -69,8 +79,8 @@ class ResultPreviewContent extends StatelessWidget {
     );
   }
 
-  Widget _imageLoadingBuilder(
-      BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+  Widget _imageLoadingBuilder(BuildContext context, Widget child,
+      ImageChunkEvent? loadingProgress) {
     if (loadingProgress == null) return child;
 
     return Center(
@@ -112,35 +122,17 @@ class ResultPreviewContent extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Column(
-            children: [
-              ElevatedButton(
-                onPressed: onRetry,
-                style: ElevatedButton.styleFrom(
-                  shape: const CircleBorder(),
-                  padding: const EdgeInsets.all(20),
-                ),
-                child: const Icon(Icons.refresh_rounded),
-              ),
-              const SizedBox(height: 8),
-              const Text('Retry',
-                  style: TextStyle(fontSize: 16, color: Colors.black, fontWeight: FontWeight.w500)),
-            ],
+          InterstitialAdWidget(
+            onSuccess: onRetry,
+            child: const ResultPreviewActionButtons(
+              icon: Icons.refresh_rounded,
+              label: 'Retry',
+            ),
           ),
-          Column(
-            children: [
-              ElevatedButton(
-                onPressed: () => onDownload(afterImageUrl),
-                style: ElevatedButton.styleFrom(
-                  shape: const CircleBorder(),
-                  padding: const EdgeInsets.all(20),
-                ),
-                child: const Icon(Icons.download_rounded),
-              ),
-              const SizedBox(height: 8),
-              const Text('Download',
-                  style: TextStyle(fontSize: 16, color: Colors.black, fontWeight: FontWeight.w500)),
-            ],
+          ResultPreviewActionButtons(
+            onPressed: () => onDownload(afterImageUrl),
+            icon: Icons.download_rounded,
+            label: 'Download',
           ),
         ],
       ),

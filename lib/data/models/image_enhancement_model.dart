@@ -5,6 +5,7 @@ class ImageEnhancementModel {
   final double scale;
   final String? webhook;
   final String? trackId;
+  final String? modelId;
 
   ImageEnhancementModel({
     required this.apiKey,
@@ -13,6 +14,7 @@ class ImageEnhancementModel {
     this.scale = 2,
     this.webhook,
     this.trackId,
+    this.modelId = 'RealESRGAN_x4plus',
   });
 
   Map<String, dynamic> toJson() => {
@@ -22,5 +24,6 @@ class ImageEnhancementModel {
     'scale': scale,
     'webhook': webhook,
     'track_id': trackId,
+    'model_id': modelId,
   };
 }

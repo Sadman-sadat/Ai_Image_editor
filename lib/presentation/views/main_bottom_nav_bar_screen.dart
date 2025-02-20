@@ -1,72 +1,67 @@
+import 'package:appear_ai_image_editor/presentation/widgets/ads/banner_ad_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:image_ai_editor/presentation/controllers/main_bottom_nav_bar_controller.dart';
-import 'package:image_ai_editor/presentation/utility/app_colors.dart';
-import 'package:image_ai_editor/presentation/views/home_screen.dart';
-import 'package:image_ai_editor/presentation/views/result_preview_screen.dart';
-import 'package:image_ai_editor/presentation/widgets/bottom_sheet_widget.dart';
-import 'package:image_ai_editor/processing_type.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/main_bottom_nav_bar_controller.dart';
+import 'package:appear_ai_image_editor/presentation/utility/app_colors.dart';
 
 class MainBottomNavBarScreen extends StatelessWidget {
-  MainBottomNavBarScreen({super.key});
-
-  final MainBottomNavBarController _mainBottomNavBarController = Get.put(MainBottomNavBarController());
-
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const ResultPreviewScreen(base64Image: '', processingType: ProcessingType.backgroundRemoval,),
-  ];
-
-  void _onNavBarTapped(int index) {
-    if (index == 2) {
-      showCustomBottomSheet(Get.context!);
-    } else {
-      _mainBottomNavBarController.changeIndex(index);
-    }
-  }
+  const MainBottomNavBarScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Obx(() => _screens[_mainBottomNavBarController.selectedIndex.value]),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 10.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavBarButton(Icons.home, 'Home', 0),
-            _buildNavBarButton(Icons.image, 'Preview', 1),
-            _buildNavBarButton(Icons.arrow_drop_up, 'More', 2),
-          ],
-        ),
-      ),
+    return GetBuilder<MainBottomNavBarController>(
+      init: MainBottomNavBarController(),
+      builder: (controller) {
+        if (!controller.isInitialized) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        return Scaffold(
+          body: controller.screens[controller.selectedIndex],
+          bottomNavigationBar: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const BannerAdWidget(),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                decoration: const BoxDecoration(
+                  color: Colors.deepOrange,
+                  borderRadius: BorderRadius.zero,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildNavBarItem(Icons.edit_outlined, 0, controller),
+                    _buildNavBarItem(Icons.group_outlined, 1, controller),
+                    _buildNavBarItem(Icons.auto_fix_high, 2, controller),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildNavBarButton(IconData icon, String label, int index) {
-    return Obx(() {
-      final isSelected = _mainBottomNavBarController.selectedIndex.value == index;
-      return OutlinedButton(
-        style: OutlinedButton.styleFrom(
-          side: BorderSide(
-            color: isSelected ? AppColors.primaryColor : Colors.white,
-          ),
+  Widget _buildNavBarItem(IconData icon, int index, MainBottomNavBarController controller) {
+    final isSelected = controller.selectedIndex == index;
+    return InkWell(
+      onTap: () => controller.changeIndex(index),
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white.withOpacity(0.15) : Colors.transparent,
+          shape: BoxShape.circle,
         ),
-        onPressed: () => _onNavBarTapped(index),
-        child: Row(
-          children: [
-            Icon(icon, color: isSelected ? AppColors.primaryColor : Colors.white, size: 20),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? AppColors.primaryColor : Colors.white,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              ),
-            ),
-          ],
+        child: Icon(
+          icon,
+          color: isSelected ? AppColors.buttonGradient[0] : AppColors.buttonGradient[1],
+          size: 28,
         ),
-      );
-    });
+      ),
+    );
   }
 }

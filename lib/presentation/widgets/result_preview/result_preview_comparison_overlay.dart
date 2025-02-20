@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:image_ai_editor/presentation/controllers/comparison_controller.dart';
-import 'package:image_ai_editor/presentation/widgets/result_preview/result_preview_comparison_clipper.dart';
-import 'package:image_ai_editor/presentation/widgets/result_preview/result_preview_error.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/result_preview/result_screen_image_comparison_controller.dart';
+import 'package:appear_ai_image_editor/presentation/widgets/result_preview/result_preview_comparison_clipper.dart';
+import 'package:appear_ai_image_editor/presentation/widgets/result_preview/result_preview_error.dart';
 
 class ResultPreviewComparisonOverlay extends StatelessWidget {
   final GlobalKey imageKey;

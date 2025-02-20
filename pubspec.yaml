@@ -1,8 +1,8 @@
-name: image_ai_editor
+name: appear_ai_image_editor
 description: "An Ai Image Editor project."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.0+1
+version: 1.2.4+9
 
 environment:
   sdk: ^3.5.4
@@ -19,11 +19,26 @@ dependencies:
   image_cropper: ^8.0.2
   permission_handler: ^11.3.1
   path_provider: ^2.1.5
-  path: ^1.9.0
-  share_plus: ^10.1.2
+  #path: ^1.9.0
+  #share_plus: ^10.1.2
   get_storage: ^2.1.1
   crypto: ^3.0.6
   carousel_slider: ^5.0.0
+  cached_network_image: ^3.4.1
+  in_app_purchase: ^3.2.1
+  url_launcher: ^6.3.1
+  shared_preferences: ^2.3.5
+  #flutter_secure_storage: ^9.2.4
+
+  # deepseek idea remove later
+  collection: ^1.18.0
+
+  # Ads
+  google_mobile_ads: ^5.2.0
+  gma_mediation_applovin: ^1.0.0
+  gma_mediation_liftoffmonetize: ^1.0.0
+  gma_mediation_mintegral: ^1.0.0
+  gma_mediation_unity: ^1.0.0
 
 dev_dependencies:
   flutter_test:
@@ -32,14 +47,28 @@ dev_dependencies:
   flutter_lints: ^4.0.0
   device_preview: ^1.2.0
   device_info_plus: ^9.0.3
+  flutter_launcher_icons: ^0.14.2
+  dependency_validator: ^3.2.3
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path_android: "assets/logo/icon.png"
+  image_path_ios: "assets/logo/icon.png"
+  adaptive_icon_background: "#ffffff" # only available for Android 8.0 devices and above
+  adaptive_icon_foreground: "assets/logo/icon.png"
 
 flutter:
 
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  #assets:
-   #- assets/images/black-solid-background.jpg
+  assets:
+   - assets/images/
+   - assets/face_swap/
+   - assets/icons/
+   - assets/splash/
+   - assets/logo/
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

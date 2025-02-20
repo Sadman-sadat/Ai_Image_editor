@@ -11,7 +11,17 @@ class Urls{
 
   static const String faceSwap = 'https://modelslab.com/api/v6/deepfake/multiple_face_swap';
 
+  static const String interiorDesign  = 'https://modelslab.com/api/v6/interior/make';
+
   static String fetchQueued(String queuedId) => 'https://modelslab.com/api/v6/realtime/fetch/$queuedId';
 
   static const String base64Conversion = 'https://modelslab.com/api/v3/base64_crop';
+
+  static const String playStoreRating = 'https://play.google.com/store/apps/details?id=com.appera.appearai.appear_ai_image_editor';
+  static const String discordUrl = 'https://discord.gg/6sUWkXC8WG';
+  static const String instagramUrl = 'https://www.instagram.com/visionai_official/';
+  static const String facebookUrl = 'https://www.facebook.com/apperatech';
+  static const String website = 'http://www.appera-technologies.com/';
+
+  static const String privacyPolicyUrl = 'https://www.ddvai.com/privacy-policy';
 }
