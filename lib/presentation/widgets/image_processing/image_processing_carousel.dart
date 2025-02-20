@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:get/get.dart';
-import 'package:appear_ai_image_editor/presentation/controllers/image_processing_carousel_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/image_processing/image_processing_carousel_controller.dart';
 
 class ImageProcessingCarousel extends StatelessWidget {
   ImageProcessingCarousel({super.key}) {

@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:appear_ai_image_editor/presentation/controllers/image_processing_carousel_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/image_processing/image_processing_carousel_controller.dart';
 import 'package:get/get.dart';
 import 'package:appear_ai_image_editor/data/models/base64_image_conversion_model.dart';
-import 'package:appear_ai_image_editor/data/services/base64_image_conversion_service.dart';
+import 'package:appear_ai_image_editor/data/services/features/base64_image_conversion_service.dart';
 import 'package:appear_ai_image_editor/data/services/image_storage_service.dart';
 import 'package:appear_ai_image_editor/data/utility/urls.dart';
 import 'package:appear_ai_image_editor/presentation/widgets/snack_bar_message.dart';

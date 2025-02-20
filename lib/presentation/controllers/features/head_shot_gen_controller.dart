@@ -1,24 +1,43 @@
 import 'package:get/get.dart';
-import 'package:appear_ai_image_editor/data/models/background_removal_model.dart';
-import 'package:appear_ai_image_editor/data/services/background_removal_service.dart';
+import 'package:appear_ai_image_editor/data/models/head_shot_gen_model.dart';
+import 'package:appear_ai_image_editor/data/services/features/head_shot_gen_service.dart';
 import 'package:appear_ai_image_editor/data/utility/urls.dart';
 import 'package:appear_ai_image_editor/presentation/controllers/fetch_queued_image_controller.dart';
-import 'package:appear_ai_image_editor/presentation/controllers/polling_result_controller.dart';
-import 'package:appear_ai_image_editor/presentation/controllers/processing_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/result_preview/result_controller_polling.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/result_preview/result_controller_processing_controller.dart';
 import 'package:appear_ai_image_editor/processing_type.dart';
 
-class BackgroundRemovalController extends ProcessingController with PollingResultMixin {
-  final BackgroundRemovalService _backgroundRemovalService = BackgroundRemovalService();
+class HeadShotGenController extends ProcessingController with PollingResultMixin {
+  final HeadShotGenService _headShotService = HeadShotGenService();
   final FetchQueuedImageController _fetchController = Get.find();
+
+  String? _currentFaceImage;
+  String? _currentPrompt;
+
+  void setFaceImage(String faceImageBase64) {
+    _currentFaceImage = faceImageBase64;
+  }
+
+  void setPrompt(String prompt) {
+    _currentPrompt = prompt;
+  }
 
   @override
   Future<bool> processImage(String base64Image) async {
-    return await removeBackground(base64Image);
+    if (_currentFaceImage == null || _currentPrompt == null) {
+      updateState(
+          errorMessage: 'Face image or prompt not provided',
+          inProgress: false
+      );
+      return false;
+    }
+
+    return await generateHeadShot(base64Image, _currentPrompt!);
   }
 
-  Future<bool> removeBackground(String base64Image) async {
+  Future<bool> generateHeadShot(String base64Original, String prompt) async {
     bool isSuccess = false;
-    _backgroundRemovalService.resetCancellation();
+    _headShotService.resetCancellation();
 
     updateState(
       inProgress: true,
@@ -28,14 +47,14 @@ class BackgroundRemovalController extends ProcessingController with PollingResul
     );
 
     try {
-      BackgroundRemovalModel model = BackgroundRemovalModel(
+      HeadShotGenModel model = HeadShotGenModel(
         apiKey: Urls.api_Key,
-        image: base64Image,
-        onlyMask: false,
+        faceImage: base64Original,
+        prompt: prompt,
       );
 
-      Map response = await _backgroundRemovalService.removeBackground(model);
-      print('Background Removal Response: $response');
+      Map<String, dynamic> response = await _headShotService.generateHeadShot(model);
+      print('Headshot Generation Response: $response');
 
       if (response.containsKey('output') && response['output'] != null) {
         updateState(
@@ -54,17 +73,17 @@ class BackgroundRemovalController extends ProcessingController with PollingResul
           generationTime: response['generationTime'] ?? 0.0,
         );
 
-        await _startPollingForResult(base64Image, trackerId);
+        await _startPollingForResult(base64Original, trackerId);
 
         isSuccess = resultImageUrl.isNotEmpty;
         print('Polling result - Success: $isSuccess, Image URL: $resultImageUrl');
       }
     } catch (e, stackTrace) {
       updateState(
-        errorMessage: 'Error in removeBackground: $e',
+        errorMessage: 'Error in generateHeadShot: $e',
         inProgress: false,
       );
-      print('Background Removal Error: $errorMessage');
+      print('Headshot Generation Error: $errorMessage');
       print('Stack trace: $stackTrace');
     }
 
@@ -80,20 +99,16 @@ class BackgroundRemovalController extends ProcessingController with PollingResul
 
   @override
   void clearCurrentProcess() {
-    updateState(
-      resultImageUrl: '',
-      trackedId: '',
-      errorMessage: '',
-      inProgress: false,
-    );
-    _fetchController.clearFetchedImageUrl();
-    _backgroundRemovalService.cancelRequest();
+    super.clearCurrentProcess();
+    _currentFaceImage = null;
+    _currentPrompt = null;
+    _headShotService.cancelRequest();
   }
 
   @override
   void cancelProcessing() {
-    _backgroundRemovalService.cancelRequest();
-    _backgroundRemovalService.markAsDisposed();
+    _headShotService.cancelRequest();
+    _headShotService.markAsDisposed();
     super.cancelProcessing();
     clearCurrentProcess();
   }

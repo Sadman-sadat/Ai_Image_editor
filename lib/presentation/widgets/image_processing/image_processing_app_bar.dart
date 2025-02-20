@@ -1,7 +1,7 @@
 import 'package:appear_ai_image_editor/presentation/widgets/image_processing/image_processing_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:appear_ai_image_editor/presentation/controllers/base64_image_conversion_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/features/base64_image_conversion_controller.dart';
 import 'package:appear_ai_image_editor/processing_type.dart';
 
 class ImageProcessingAppBar extends StatefulWidget implements PreferredSizeWidget {

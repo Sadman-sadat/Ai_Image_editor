@@ -1,4 +1,4 @@
-import 'package:appear_ai_image_editor/presentation/controllers/polling_result_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/result_preview/result_controller_polling.dart';
 import 'package:get/get.dart';
 
 abstract class ProcessingController extends GetxController {

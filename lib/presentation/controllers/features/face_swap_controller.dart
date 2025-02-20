@@ -1,10 +1,10 @@
 import 'package:get/get.dart';
 import 'package:appear_ai_image_editor/data/models/face_swap_model.dart';
-import 'package:appear_ai_image_editor/data/services/face_swap_service.dart';
+import 'package:appear_ai_image_editor/data/services/features/face_swap_service.dart';
 import 'package:appear_ai_image_editor/data/utility/urls.dart';
 import 'package:appear_ai_image_editor/presentation/controllers/fetch_queued_image_controller.dart';
-import 'package:appear_ai_image_editor/presentation/controllers/polling_result_controller.dart';
-import 'package:appear_ai_image_editor/presentation/controllers/processing_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/result_preview/result_controller_polling.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/result_preview/result_controller_processing_controller.dart';
 import 'package:appear_ai_image_editor/processing_type.dart';
 
 class FaceSwapController extends ProcessingController with PollingResultMixin {

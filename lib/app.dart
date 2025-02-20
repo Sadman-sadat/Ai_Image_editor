@@ -1,17 +1,17 @@
-import 'package:appear_ai_image_editor/presentation/views/interior_design_generation_screen.dart';
+import 'package:appear_ai_image_editor/presentation/views/features/interior_design_generation_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:appear_ai_image_editor/controller_binder.dart';
 import 'package:appear_ai_image_editor/presentation/utility/app_colors.dart';
 //import 'package:appear_ai_image_editor/presentation/utility/gradient_background_wrapper.dart';
 import 'package:appear_ai_image_editor/presentation/utility/image_background_wrapper.dart';
-import 'package:appear_ai_image_editor/presentation/views/avatar_gen_screen.dart';
-import 'package:appear_ai_image_editor/presentation/views/background_removal_screen.dart';
-import 'package:appear_ai_image_editor/presentation/views/face_swap_screen.dart';
-import 'package:appear_ai_image_editor/presentation/views/head_shot_gen_screen.dart';
-import 'package:appear_ai_image_editor/presentation/views/image_enhancement_screen.dart';
-import 'package:appear_ai_image_editor/presentation/views/object_removal_screen.dart';
-import 'package:appear_ai_image_editor/presentation/views/relighting_screen.dart';
+import 'package:appear_ai_image_editor/presentation/views/features/avatar_gen_screen.dart';
+import 'package:appear_ai_image_editor/presentation/views/features/background_removal_screen.dart';
+import 'package:appear_ai_image_editor/presentation/views/features/face_swap_screen.dart';
+import 'package:appear_ai_image_editor/presentation/views/features/head_shot_gen_screen.dart';
+import 'package:appear_ai_image_editor/presentation/views/features/image_enhancement_screen.dart';
+import 'package:appear_ai_image_editor/presentation/views/features/object_removal_screen.dart';
+import 'package:appear_ai_image_editor/presentation/views/features/relighting_screen.dart';
 import 'package:appear_ai_image_editor/presentation/views/splash_screen.dart';
 
 class AIImageEditor extends StatefulWidget {

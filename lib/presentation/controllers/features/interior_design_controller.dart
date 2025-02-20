@@ -1,21 +1,20 @@
-import 'package:get/get.dart';
-import 'package:appear_ai_image_editor/data/models/head_shot_gen_model.dart';
-import 'package:appear_ai_image_editor/data/services/head_shot_gen_service.dart';
 import 'package:appear_ai_image_editor/data/utility/urls.dart';
+import 'package:get/get.dart';
+import 'package:appear_ai_image_editor/data/models/interior_design_model.dart';
+import 'package:appear_ai_image_editor/data/services/features/interior_design_service.dart';
 import 'package:appear_ai_image_editor/presentation/controllers/fetch_queued_image_controller.dart';
-import 'package:appear_ai_image_editor/presentation/controllers/polling_result_controller.dart';
-import 'package:appear_ai_image_editor/presentation/controllers/processing_controller.dart';
-import 'package:appear_ai_image_editor/processing_type.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/result_preview/result_controller_polling.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/result_preview/result_controller_processing_controller.dart';
 
-class HeadShotGenController extends ProcessingController with PollingResultMixin {
-  final HeadShotGenService _headShotService = HeadShotGenService();
+class InteriorDesignController extends ProcessingController with PollingResultMixin {
+  final InteriorDesignService _interiorService = InteriorDesignService();
   final FetchQueuedImageController _fetchController = Get.find();
 
-  String? _currentFaceImage;
+  String? _currentInitImage;
   String? _currentPrompt;
 
-  void setFaceImage(String faceImageBase64) {
-    _currentFaceImage = faceImageBase64;
+  void setInitImage(String initImageUrl) {
+    _currentInitImage = initImageUrl;
   }
 
   void setPrompt(String prompt) {
@@ -24,20 +23,20 @@ class HeadShotGenController extends ProcessingController with PollingResultMixin
 
   @override
   Future<bool> processImage(String base64Image) async {
-    if (_currentFaceImage == null || _currentPrompt == null) {
+    if (_currentInitImage == null || _currentPrompt == null) {
       updateState(
-          errorMessage: 'Face image or prompt not provided',
+          errorMessage: 'Initial image or prompt not provided',
           inProgress: false
       );
       return false;
     }
 
-    return await generateHeadShot(base64Image, _currentPrompt!);
+    return await generateInteriorDesign(_currentInitImage!, _currentPrompt!);
   }
 
-  Future<bool> generateHeadShot(String base64Original, String prompt) async {
+  Future<bool> generateInteriorDesign(String initImage, String prompt) async {
     bool isSuccess = false;
-    _headShotService.resetCancellation();
+    _interiorService.resetCancellation();
 
     updateState(
       inProgress: true,
@@ -47,14 +46,14 @@ class HeadShotGenController extends ProcessingController with PollingResultMixin
     );
 
     try {
-      HeadShotGenModel model = HeadShotGenModel(
+      InteriorDesignModel model = InteriorDesignModel(
         apiKey: Urls.api_Key,
-        faceImage: base64Original,
+        initImage: initImage,
         prompt: prompt,
       );
 
-      Map<String, dynamic> response = await _headShotService.generateHeadShot(model);
-      print('Headshot Generation Response: $response');
+      Map<String, dynamic> response = await _interiorService.generateInteriorDesign(model);
+      print('Interior Design Generation Response: $response');
 
       if (response.containsKey('output') && response['output'] != null) {
         updateState(
@@ -73,17 +72,17 @@ class HeadShotGenController extends ProcessingController with PollingResultMixin
           generationTime: response['generationTime'] ?? 0.0,
         );
 
-        await _startPollingForResult(base64Original, trackerId);
+        await _startPollingForResult(initImage, trackerId);
 
         isSuccess = resultImageUrl.isNotEmpty;
         print('Polling result - Success: $isSuccess, Image URL: $resultImageUrl');
       }
     } catch (e, stackTrace) {
       updateState(
-        errorMessage: 'Error in generateHeadShot: $e',
+        errorMessage: 'Error in generateInteriorDesign: $e',
         inProgress: false,
       );
-      print('Headshot Generation Error: $errorMessage');
+      print('Interior Design Generation Error: $errorMessage');
       print('Stack trace: $stackTrace');
     }
 
@@ -100,15 +99,14 @@ class HeadShotGenController extends ProcessingController with PollingResultMixin
   @override
   void clearCurrentProcess() {
     super.clearCurrentProcess();
-    _currentFaceImage = null;
+    _currentInitImage = null;
     _currentPrompt = null;
-    _headShotService.cancelRequest();
+    _interiorService.cancelRequest();
   }
-
   @override
   void cancelProcessing() {
-    _headShotService.cancelRequest();
-    _headShotService.markAsDisposed();
+    _interiorService.cancelRequest();
+    _interiorService.markAsDisposed();
     super.cancelProcessing();
     clearCurrentProcess();
   }

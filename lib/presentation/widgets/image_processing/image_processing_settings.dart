@@ -1,5 +1,5 @@
 import 'package:appear_ai_image_editor/data/services/subscription_service.dart';
-import 'package:appear_ai_image_editor/presentation/controllers/image_processing_settings_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/image_processing/image_processing_settings_controller.dart';
 import 'package:appear_ai_image_editor/presentation/utility/app_colors.dart';
 import 'package:appear_ai_image_editor/processing_type.dart';
 import 'package:flutter/material.dart';

@@ -1,27 +1,24 @@
-// remove double update code delayed
-import 'package:appear_ai_image_editor/presentation/controllers/image_processing_settings_controller.dart';
 import 'package:get/get.dart';
-import 'package:appear_ai_image_editor/data/models/image_enhancement_model.dart';
-import 'package:appear_ai_image_editor/data/services/image_enhancement_service.dart';
+import 'package:appear_ai_image_editor/data/models/background_removal_model.dart';
+import 'package:appear_ai_image_editor/data/services/features/background_removal_service.dart';
 import 'package:appear_ai_image_editor/data/utility/urls.dart';
 import 'package:appear_ai_image_editor/presentation/controllers/fetch_queued_image_controller.dart';
-import 'package:appear_ai_image_editor/presentation/controllers/polling_result_controller.dart';
-import 'package:appear_ai_image_editor/presentation/controllers/processing_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/result_preview/result_controller_polling.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/result_preview/result_controller_processing_controller.dart';
 import 'package:appear_ai_image_editor/processing_type.dart';
 
-class ImageEnhancementController extends ProcessingController with PollingResultMixin {
-  final ImageEnhancementService _imageEnhancementService = ImageEnhancementService();
+class BackgroundRemovalController extends ProcessingController with PollingResultMixin {
+  final BackgroundRemovalService _backgroundRemovalService = BackgroundRemovalService();
   final FetchQueuedImageController _fetchController = Get.find();
-  final ImageProcessingSettingsController _settingsController = Get.find();
 
   @override
   Future<bool> processImage(String base64Image) async {
-    return await enhanceImage(base64Image);
+    return await removeBackground(base64Image);
   }
 
-  Future<bool> enhanceImage(String base64Image) async {
+  Future<bool> removeBackground(String base64Image) async {
     bool isSuccess = false;
-    _imageEnhancementService.resetCancellation();
+    _backgroundRemovalService.resetCancellation();
 
     updateState(
       inProgress: true,
@@ -31,29 +28,18 @@ class ImageEnhancementController extends ProcessingController with PollingResult
     );
 
     try {
-      ImageEnhancementModel model = ImageEnhancementModel(
+      BackgroundRemovalModel model = BackgroundRemovalModel(
         apiKey: Urls.api_Key,
         image: base64Image,
-        scale: _settingsController.scale,
+        onlyMask: false,
       );
 
-      Map response = await _imageEnhancementService.enhancementImage(model);
-      print('Image Enhancement Response: $response');
+      Map response = await _backgroundRemovalService.removeBackground(model);
+      print('Background Removal Response: $response');
 
       if (response.containsKey('output') && response['output'] != null) {
-        // updateState(
-        //   resultImageUrl: response['output'],
-        //   generationTime: response['generationTime'] ?? 0.0,
-        //   inProgress: false,
-        // );
-
-        final imageUrl = response['output'];
-
-        // ✅ Wait before assigning URL
-        await Future.delayed(Duration(seconds: 10));  // Adjust delay if needed
-
         updateState(
-          resultImageUrl: imageUrl,
+          resultImageUrl: response['output'],
           generationTime: response['generationTime'] ?? 0.0,
           inProgress: false,
         );
@@ -75,10 +61,10 @@ class ImageEnhancementController extends ProcessingController with PollingResult
       }
     } catch (e, stackTrace) {
       updateState(
-        errorMessage: 'Error in enhanceImage: $e',
+        errorMessage: 'Error in removeBackground: $e',
         inProgress: false,
       );
-      print('Image Enhancement Error: $errorMessage');
+      print('Background Removal Error: $errorMessage');
       print('Stack trace: $stackTrace');
     }
 
@@ -101,13 +87,13 @@ class ImageEnhancementController extends ProcessingController with PollingResult
       inProgress: false,
     );
     _fetchController.clearFetchedImageUrl();
-    _imageEnhancementService.cancelRequest();
+    _backgroundRemovalService.cancelRequest();
   }
 
   @override
   void cancelProcessing() {
-    _imageEnhancementService.cancelRequest();
-    _imageEnhancementService.markAsDisposed();
+    _backgroundRemovalService.cancelRequest();
+    _backgroundRemovalService.markAsDisposed();
     super.cancelProcessing();
     clearCurrentProcess();
   }

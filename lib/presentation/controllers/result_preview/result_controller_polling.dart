@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 import 'package:appear_ai_image_editor/presentation/controllers/fetch_queued_image_controller.dart';
-import 'package:appear_ai_image_editor/presentation/controllers/processing_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/result_preview/result_controller_processing_controller.dart';
 
 mixin PollingResultMixin {
   bool _isPollingCancelled = false;

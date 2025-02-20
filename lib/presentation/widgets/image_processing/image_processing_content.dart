@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:appear_ai_image_editor/presentation/controllers/base64_image_conversion_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/features/base64_image_conversion_controller.dart';
 import 'package:appear_ai_image_editor/presentation/widgets/image_processing/image_processing_loading_indicator.dart';
 import 'package:appear_ai_image_editor/presentation/widgets/image_processing/image_processing_mask_drawing_content.dart';
 import 'package:appear_ai_image_editor/processing_type.dart';

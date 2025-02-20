@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:appear_ai_image_editor/data/services/network_caller.dart';
+import 'package:appear_ai_image_editor/data/services/network/network_caller.dart';
 
 mixin ApiServiceMixin {
   final NetworkCaller _networkCaller = NetworkCaller();

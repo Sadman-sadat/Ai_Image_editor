@@ -1,8 +1,8 @@
 import 'package:appear_ai_image_editor/presentation/widgets/ads/rewarded_ad_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:appear_ai_image_editor/presentation/controllers/base64_image_conversion_controller.dart';
-import 'package:appear_ai_image_editor/presentation/controllers/image_processing_carousel_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/features/base64_image_conversion_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/image_processing/image_processing_carousel_controller.dart';
 import 'package:appear_ai_image_editor/presentation/utility/app_colors.dart';
 import 'package:appear_ai_image_editor/presentation/views/result_preview_screen.dart';
 import 'package:appear_ai_image_editor/processing_type.dart';

@@ -1,21 +1,26 @@
 import 'package:get/get.dart';
-import 'package:appear_ai_image_editor/data/models/avatar_gen_model.dart';
-import 'package:appear_ai_image_editor/data/services/avatar_gen_service.dart';
+import 'package:appear_ai_image_editor/data/models/relighting_model.dart';
+import 'package:appear_ai_image_editor/data/services/features/relighting_service.dart';
 import 'package:appear_ai_image_editor/data/utility/urls.dart';
 import 'package:appear_ai_image_editor/presentation/controllers/fetch_queued_image_controller.dart';
-import 'package:appear_ai_image_editor/presentation/controllers/polling_result_controller.dart';
-import 'package:appear_ai_image_editor/presentation/controllers/processing_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/result_preview/result_controller_polling.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/result_preview/result_controller_processing_controller.dart';
 import 'package:appear_ai_image_editor/processing_type.dart';
 
-class AvatarGenController extends ProcessingController with PollingResultMixin {
-  final AvatarGenService _avatarService = AvatarGenService();
+class RelightingController extends ProcessingController with PollingResultMixin {
+  final RelightingService _relightingService = RelightingService();
   final FetchQueuedImageController _fetchController = Get.find();
 
   String? _currentInitImage;
+  String? _currentLighting;
   String? _currentPrompt;
 
   void setInitImage(String initImageUrl) {
     _currentInitImage = initImageUrl;
+  }
+
+  void setLighting(String lighting) {
+    _currentLighting = lighting;
   }
 
   void setPrompt(String prompt) {
@@ -24,20 +29,20 @@ class AvatarGenController extends ProcessingController with PollingResultMixin {
 
   @override
   Future<bool> processImage(String base64Image) async {
-    if (_currentInitImage == null || _currentPrompt == null) {
+    if (_currentInitImage == null || _currentLighting == null || _currentPrompt == null) {
       updateState(
-          errorMessage: 'Initial image or prompt not provided',
+          errorMessage: 'Initial image, lighting, or prompt not provided',
           inProgress: false
       );
       return false;
     }
 
-    return await generateAvatar(_currentInitImage!, _currentPrompt!);
+    return await generateRelighting(_currentInitImage!, _currentLighting!, _currentPrompt!);
   }
 
-  Future<bool> generateAvatar(String initImage, String prompt) async {
+  Future<bool> generateRelighting(String initImage, String lighting, String prompt) async {
     bool isSuccess = false;
-    _avatarService.resetCancellation();
+    _relightingService.resetCancellation();
 
     updateState(
       inProgress: true,
@@ -47,14 +52,15 @@ class AvatarGenController extends ProcessingController with PollingResultMixin {
     );
 
     try {
-      AvatarGenModel model = AvatarGenModel(
+      RelightingModel model = RelightingModel(
         apiKey: Urls.api_Key,
         initImage: initImage,
+        lighting: lighting,
         prompt: prompt,
       );
 
-      Map<String, dynamic> response = await _avatarService.generateAvatar(model);
-      print('Avatar Generation Response: $response');
+      Map<String, dynamic> response = await _relightingService.generateRelighting(model);
+      print('Relighting Generation Response: $response');
 
       if (response.containsKey('output') && response['output'] != null) {
         updateState(
@@ -80,10 +86,10 @@ class AvatarGenController extends ProcessingController with PollingResultMixin {
       }
     } catch (e, stackTrace) {
       updateState(
-        errorMessage: 'Error in generateAvatar: $e',
+        errorMessage: 'Error in generateRelighting: $e',
         inProgress: false,
       );
-      print('Avatar Generation Error: $errorMessage');
+      print('Relighting Generation Error: $errorMessage');
       print('Stack trace: $stackTrace');
     }
 
@@ -101,14 +107,15 @@ class AvatarGenController extends ProcessingController with PollingResultMixin {
   void clearCurrentProcess() {
     super.clearCurrentProcess();
     _currentInitImage = null;
+    _currentLighting = null;
     _currentPrompt = null;
-    _avatarService.resetCancellation();
+    _relightingService.resetCancellation();
   }
 
   @override
   void cancelProcessing() {
-    _avatarService.cancelRequest();
-    _avatarService.markAsDisposed();
+    _relightingService.cancelRequest();
+    _relightingService.markAsDisposed();
     super.cancelProcessing();
     clearCurrentProcess();
   }

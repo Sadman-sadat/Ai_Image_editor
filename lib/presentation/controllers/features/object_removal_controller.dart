@@ -1,48 +1,43 @@
 import 'package:get/get.dart';
-import 'package:appear_ai_image_editor/data/models/relighting_model.dart';
-import 'package:appear_ai_image_editor/data/services/relighting_service.dart';
+import 'package:appear_ai_image_editor/data/models/object_removal_model.dart';
+import 'package:appear_ai_image_editor/data/services/features/object_removal_service.dart';
 import 'package:appear_ai_image_editor/data/utility/urls.dart';
 import 'package:appear_ai_image_editor/presentation/controllers/fetch_queued_image_controller.dart';
-import 'package:appear_ai_image_editor/presentation/controllers/polling_result_controller.dart';
-import 'package:appear_ai_image_editor/presentation/controllers/processing_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/result_preview/result_controller_polling.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/result_preview/result_controller_processing_controller.dart';
 import 'package:appear_ai_image_editor/processing_type.dart';
 
-class RelightingController extends ProcessingController with PollingResultMixin {
-  final RelightingService _relightingService = RelightingService();
+class ObjectRemovalController extends ProcessingController with PollingResultMixin {
+  final ObjectRemovalService _objectRemovalService = ObjectRemovalService();
   final FetchQueuedImageController _fetchController = Get.find();
 
-  String? _currentInitImage;
-  String? _currentLighting;
-  String? _currentPrompt;
+  String? _currentMask;
+  String? _currentImage;
 
-  void setInitImage(String initImageUrl) {
-    _currentInitImage = initImageUrl;
+  void setMask(String maskBase64) {
+    _currentMask = maskBase64;
   }
 
-  void setLighting(String lighting) {
-    _currentLighting = lighting;
-  }
-
-  void setPrompt(String prompt) {
-    _currentPrompt = prompt;
+  void setImage(String imageBase64) {
+    _currentImage = imageBase64;
   }
 
   @override
   Future<bool> processImage(String base64Image) async {
-    if (_currentInitImage == null || _currentLighting == null || _currentPrompt == null) {
+    if (_currentMask == null) {
       updateState(
-          errorMessage: 'Initial image, lighting, or prompt not provided',
+          errorMessage: 'No mask provided for object removal',
           inProgress: false
       );
       return false;
     }
 
-    return await generateRelighting(_currentInitImage!, _currentLighting!, _currentPrompt!);
+    return await removeObject(base64Image, _currentMask!);
   }
 
-  Future<bool> generateRelighting(String initImage, String lighting, String prompt) async {
+  Future<bool> removeObject(String base64Original, String base64Mask) async {
     bool isSuccess = false;
-    _relightingService.resetCancellation();
+    _objectRemovalService.resetCancellation();
 
     updateState(
       inProgress: true,
@@ -52,15 +47,14 @@ class RelightingController extends ProcessingController with PollingResultMixin 
     );
 
     try {
-      RelightingModel model = RelightingModel(
+      ObjectRemovalModel model = ObjectRemovalModel(
         apiKey: Urls.api_Key,
-        initImage: initImage,
-        lighting: lighting,
-        prompt: prompt,
+        initImage: base64Original,
+        maskImage: base64Mask,
       );
 
-      Map<String, dynamic> response = await _relightingService.generateRelighting(model);
-      print('Relighting Generation Response: $response');
+      Map response = await _objectRemovalService.removeObject(model);
+      print('Object Removal Response: $response');
 
       if (response.containsKey('output') && response['output'] != null) {
         updateState(
@@ -79,17 +73,17 @@ class RelightingController extends ProcessingController with PollingResultMixin 
           generationTime: response['generationTime'] ?? 0.0,
         );
 
-        await _startPollingForResult(initImage, trackerId);
+        await _startPollingForResult(base64Original, trackerId);
 
         isSuccess = resultImageUrl.isNotEmpty;
         print('Polling result - Success: $isSuccess, Image URL: $resultImageUrl');
       }
     } catch (e, stackTrace) {
       updateState(
-        errorMessage: 'Error in generateRelighting: $e',
+        errorMessage: 'Error in removeObject: $e',
         inProgress: false,
       );
-      print('Relighting Generation Error: $errorMessage');
+      print('Object Removal Error: $errorMessage');
       print('Stack trace: $stackTrace');
     }
 
@@ -106,16 +100,15 @@ class RelightingController extends ProcessingController with PollingResultMixin 
   @override
   void clearCurrentProcess() {
     super.clearCurrentProcess();
-    _currentInitImage = null;
-    _currentLighting = null;
-    _currentPrompt = null;
-    _relightingService.resetCancellation();
+    _currentMask = null;
+    _currentImage = null;
+    _objectRemovalService.cancelRequest();
   }
 
   @override
   void cancelProcessing() {
-    _relightingService.cancelRequest();
-    _relightingService.markAsDisposed();
+    _objectRemovalService.cancelRequest();
+    _objectRemovalService.markAsDisposed();
     super.cancelProcessing();
     clearCurrentProcess();
   }

@@ -1,8 +1,8 @@
-import 'package:appear_ai_image_editor/presentation/controllers/image_processing_settings_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/image_processing/image_processing_settings_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:appear_ai_image_editor/presentation/controllers/base64_image_conversion_controller.dart';
-import 'package:appear_ai_image_editor/presentation/controllers/mask_drawing_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/features/base64_image_conversion_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/features/mask_drawing_controller.dart';
 import 'package:appear_ai_image_editor/presentation/widgets/image_processing/image_processing_app_bar.dart';
 import 'package:appear_ai_image_editor/presentation/widgets/image_processing/image_processing_carousel.dart';
 import 'package:appear_ai_image_editor/presentation/widgets/image_processing/image_processing_content.dart';

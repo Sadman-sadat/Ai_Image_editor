@@ -3,7 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:appear_ai_image_editor/data/models/base64_image_conversion_model.dart';
-import 'package:appear_ai_image_editor/data/services/base64_image_conversion_service.dart';
+import 'package:appear_ai_image_editor/data/services/features/base64_image_conversion_service.dart';
 import 'package:appear_ai_image_editor/data/utility/urls.dart';
 import 'package:appear_ai_image_editor/presentation/widgets/snack_bar_message.dart';
 import 'package:appear_ai_image_editor/processing_type.dart';
