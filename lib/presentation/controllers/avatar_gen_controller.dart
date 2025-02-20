@@ -1,16 +1,14 @@
 import 'package:get/get.dart';
-import 'package:image_ai_editor/data/models/avatar_gen_model.dart';
-import 'package:image_ai_editor/data/services/avatar_gen_service.dart';
-import 'package:image_ai_editor/data/services/image_storage_service.dart';
-import 'package:image_ai_editor/data/utility/urls.dart';
-import 'package:image_ai_editor/presentation/controllers/fetch_queued_image_controller.dart';
-import 'package:image_ai_editor/presentation/controllers/polling_result_controller.dart';
-import 'package:image_ai_editor/presentation/controllers/processing_controller.dart';
-import 'package:image_ai_editor/processing_type.dart';
+import 'package:appear_ai_image_editor/data/models/avatar_gen_model.dart';
+import 'package:appear_ai_image_editor/data/services/avatar_gen_service.dart';
+import 'package:appear_ai_image_editor/data/utility/urls.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/fetch_queued_image_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/polling_result_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/processing_controller.dart';
+import 'package:appear_ai_image_editor/processing_type.dart';
 
 class AvatarGenController extends ProcessingController with PollingResultMixin {
   final AvatarGenService _avatarService = AvatarGenService();
-  final ImageStorageService _storageService = Get.find();
   final FetchQueuedImageController _fetchController = Get.find();
 
   String? _currentInitImage;
@@ -39,6 +37,8 @@ class AvatarGenController extends ProcessingController with PollingResultMixin {
 
   Future<bool> generateAvatar(String initImage, String prompt) async {
     bool isSuccess = false;
+    _avatarService.resetCancellation();
+
     updateState(
       inProgress: true,
       errorMessage: '',
@@ -47,19 +47,6 @@ class AvatarGenController extends ProcessingController with PollingResultMixin {
     );
 
     try {
-      final storedData = _storageService.getImageData(
-        base64Image: initImage,
-        processingType: ProcessingType.avatarGen.storageKey,
-      );
-
-      if (storedData != null && storedData['processedUrl']?.isNotEmpty == true) {
-        updateState(
-          resultImageUrl: storedData['processedUrl']!,
-          inProgress: false,
-        );
-        return true;
-      }
-
       AvatarGenModel model = AvatarGenModel(
         apiKey: Urls.api_Key,
         initImage: initImage,
@@ -74,12 +61,6 @@ class AvatarGenController extends ProcessingController with PollingResultMixin {
           resultImageUrl: response['output'],
           generationTime: response['generationTime'] ?? 0.0,
           inProgress: false,
-        );
-
-        _storageService.storeImageData(
-          base64Image: initImage,
-          processedUrl: resultImageUrl,
-          processingType: ProcessingType.avatarGen.storageKey,
         );
 
         isSuccess = true;
@@ -112,9 +93,7 @@ class AvatarGenController extends ProcessingController with PollingResultMixin {
   Future<void> _startPollingForResult(String base64Image, String trackerId) async {
     await startPollingForResult(
       controller: this,
-      base64Image: base64Image,
       trackerId: trackerId,
-      processingType: ProcessingType.backgroundRemoval,
     );
   }
 
@@ -123,5 +102,20 @@ class AvatarGenController extends ProcessingController with PollingResultMixin {
     super.clearCurrentProcess();
     _currentInitImage = null;
     _currentPrompt = null;
+    _avatarService.resetCancellation();
+  }
+
+  @override
+  void cancelProcessing() {
+    _avatarService.cancelRequest();
+    _avatarService.markAsDisposed();
+    super.cancelProcessing();
+    clearCurrentProcess();
+  }
+
+  @override
+  void onClose() {
+    cancelProcessing();
+    super.onClose();
   }
 }

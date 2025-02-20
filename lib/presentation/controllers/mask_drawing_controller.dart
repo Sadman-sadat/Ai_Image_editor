@@ -2,11 +2,11 @@ import 'dart:convert';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:image_ai_editor/data/models/base64_image_conversion_model.dart';
-import 'package:image_ai_editor/data/services/base64_image_conversion_service.dart';
-import 'package:image_ai_editor/data/utility/urls.dart';
-import 'package:image_ai_editor/presentation/widgets/snack_bar_message.dart';
-import 'package:image_ai_editor/processing_type.dart';
+import 'package:appear_ai_image_editor/data/models/base64_image_conversion_model.dart';
+import 'package:appear_ai_image_editor/data/services/base64_image_conversion_service.dart';
+import 'package:appear_ai_image_editor/data/utility/urls.dart';
+import 'package:appear_ai_image_editor/presentation/widgets/snack_bar_message.dart';
+import 'package:appear_ai_image_editor/processing_type.dart';
 
 class MaskDrawingController extends GetxController {
   List<Offset> _drawPoints = [];
@@ -14,6 +14,7 @@ class MaskDrawingController extends GetxController {
   String _base64MaskImage = '';
   String _processedMaskUrl = '';
   ProcessingType processingType;
+  bool _isLoading = false;
 
   Size? _imageSize;
   Size? _canvasSize;
@@ -30,6 +31,8 @@ class MaskDrawingController extends GetxController {
   bool get isMaskDrawingMode => _isMaskDrawingMode;
   String get base64MaskImage => _base64MaskImage;
   String get processedMaskUrl => _processedMaskUrl;
+  bool get isLoading => _isLoading;
+
   Size? get imageSize => _imageSize;
   Size? get canvasSize => _canvasSize;
   Rect? get imageBounds => _imageBounds;
@@ -168,6 +171,8 @@ class MaskDrawingController extends GetxController {
     }
 
     try {
+      _isLoading = true;
+      update();
       final model = Base64ImageConversionModel(
         apiKey: Urls.api_Key, // Replace with your actual API key
         imageBase64: _base64MaskImage,
@@ -177,10 +182,15 @@ class MaskDrawingController extends GetxController {
       final imageUrl = await _base64ImageService.convertImageToBase64(model);
       _processedMaskUrl = imageUrl;
       _isMaskDrawingMode = false;
+
+      _isLoading = false;
       update();
 
       return true;
     } catch (e) {
+      _isLoading = false;
+      update();
+
       showSnackBarMessage(
         title: 'Error',
         message: 'Failed to upload mask image: $e',

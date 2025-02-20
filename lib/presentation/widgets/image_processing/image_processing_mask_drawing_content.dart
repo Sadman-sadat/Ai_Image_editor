@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:image_ai_editor/presentation/controllers/base64_image_conversion_controller.dart';
-import 'package:image_ai_editor/presentation/controllers/mask_drawing_controller.dart';
-import 'package:image_ai_editor/presentation/widgets/image_processing/image_processing_mask_drawing_painter.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/base64_image_conversion_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/mask_drawing_controller.dart';
+import 'package:appear_ai_image_editor/presentation/widgets/image_processing/image_processing_mask_drawing_painter.dart';
 
 class ImageProcessingMaskDrawingContent extends StatelessWidget {
   final Base64ImageConversionController controller;

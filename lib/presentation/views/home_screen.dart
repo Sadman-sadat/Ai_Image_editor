@@ -1,29 +1,43 @@
+//import 'package:appear_ai_image_editor/presentation/widgets/search_field_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:image_ai_editor/presentation/controllers/home_screen_controller.dart';
-import 'package:image_ai_editor/presentation/widgets/feature_card_widget.dart';
-import 'package:image_ai_editor/presentation/widgets/search_field_widget.dart';
-import 'package:image_ai_editor/presentation/widgets/snack_bar_message.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/home_screen_controller.dart';
+import 'package:appear_ai_image_editor/presentation/views/subscription_screen.dart';
+import 'package:appear_ai_image_editor/presentation/widgets/feature_card_widget.dart';
+import 'package:appear_ai_image_editor/data/services/subscription_service.dart';
+import 'package:appear_ai_image_editor/data/services/feature_usage_service.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  final SubscriptionService subscriptionService;
+  final FeatureUsageService featureUsageService;
+
+  const HomeScreen({
+    super.key,
+    required this.subscriptionService,
+    required this.featureUsageService,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Explore'),
+        title: const Text(
+          'Explore',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            color: Colors.white,
-            tooltip: 'Settings',
-            onPressed: () {
-              showSnackBarMessage(
-                title: 'Setting',
-                message: 'This is for Setting',
-              );
+          GestureDetector(
+            onTap: () {
+              Get.to(() => const SubscriptionScreen());
             },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 12),
+              child: Image.asset(
+                'assets/images/PRO.png',
+                height: 80,
+                width: 80,
+              ),
+            ),
           ),
         ],
       ),
@@ -32,39 +46,32 @@ class HomeScreen extends StatelessWidget {
           builder: (context, constraints) {
             return Column(
               children: [
-                const SearchFieldWidget(title: 'Search Features'),
-                const SizedBox(height: 8),
+                //remove comments this for Search box
+                //const SearchFieldWidget(title: 'Search Features'),
                 Expanded(
                   child: GetX<HomeScreenController>(
                     builder: (controller) => controller.filteredFeatures.isEmpty
                         ? const Center(child: Text('No features found'))
                         : constraints.maxWidth > 600
                         ? GridView.count(
-                      crossAxisCount: constraints.maxWidth > 900 ? 3 : 2,
+                      crossAxisCount:
+                      constraints.maxWidth > 900 ? 4 : 2,
                       padding: const EdgeInsets.all(16),
                       mainAxisSpacing: 16,
                       crossAxisSpacing: 16,
-                      childAspectRatio: 1.6,
-                      children: controller.filteredFeatures
-                          .map((feature) => FeatureCardWidget(
-                        imageUrl: feature['imageUrl'],
-                        title: feature['title'],
-                        onButtonPressed: () => controller.navigateToFeature(feature['screen']),
-                      ))
-                          .toList(),
+                      childAspectRatio: 2.23,
+                      children: _buildFeatureCards(
+                        controller,
+                        controller.filteredFeatures,
+                      ),
                     )
                         : ListView(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      children: controller.filteredFeatures
-                          .map((feature) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: FeatureCardWidget(
-                          imageUrl: feature['imageUrl'],
-                          title: feature['title'],
-                          onButtonPressed: () => controller.navigateToFeature(feature['screen']),
-                        ),
-                      ))
-                          .toList(),
+                      padding:
+                      const EdgeInsets.symmetric(horizontal: 10),
+                      children: _buildFeatureCards(
+                        controller,
+                        controller.filteredFeatures,
+                      ),
                     ),
                   ),
                 ),
@@ -74,5 +81,26 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  List<Widget> _buildFeatureCards(
+      HomeScreenController controller,
+      List<Map<String, dynamic>> features,
+      ) {
+    return features
+        .map(
+          (feature) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: FeatureCardWidget(
+          imageAsset: feature['imageAsset'],
+          title: feature['title'],
+          featureId: feature['screen'],
+          onButtonPressed: () => controller.navigateToFeature(feature['screen']),
+          subscriptionService: subscriptionService,
+          featureUsageService: featureUsageService,
+        ),
+      ),
+    )
+        .toList();
   }
 }

@@ -1,41 +1,53 @@
 import 'package:get/get.dart';
-import 'package:image_ai_editor/presentation/controllers/fetch_queued_image_controller.dart';
-import 'package:image_ai_editor/presentation/controllers/processing_controller.dart';
-import 'package:image_ai_editor/processing_type.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/fetch_queued_image_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/processing_controller.dart';
 
 mixin PollingResultMixin {
+  bool _isPollingCancelled = false;
+  bool _isDisposed = false;
+
   Future<void> startPollingForResult({
     required ProcessingController controller,
-    required String base64Image,
     required String trackerId,
-    required ProcessingType processingType,
     int maxAttempts = 20,
   }) async {
     print('Starting polling for trackerId: $trackerId');
+    _isPollingCancelled = false;
+    _isDisposed = false;
 
     int attempts = 0;
     bool imageFound = false;
 
     final fetchController = Get.find<FetchQueuedImageController>();
 
-    while (attempts < maxAttempts && !imageFound) {
+    while (attempts < maxAttempts && !imageFound && !_isPollingCancelled && !_isDisposed) {
       print('Polling attempt $attempts');
 
-      bool fetchResult = await fetchController.fetchQueuedImage(
-        trackerId,
-        base64Image: base64Image,
-        processingType: processingType.storageKey,
-      );
+      bool fetchResult = await fetchController.fetchQueuedImage(trackerId);
+
+      // Check if polling was cancelled or disposed during the fetch operation
+      if (_isPollingCancelled || _isDisposed) {
+        print('Polling cancelled or disposed during fetch operation');
+        break;
+      }
 
       print('Fetch attempt result: $fetchResult');
       print('Fetched Image URL: ${fetchController.fetchedImageUrl}');
 
       if (fetchController.fetchedImageUrl.isNotEmpty) {
-        controller.updateState(
-          resultImageUrl: fetchController.fetchedImageUrl,
-          inProgress: false,
-        );
+        if (!_isDisposed && !_isPollingCancelled) {
+          controller.updateState(
+            resultImageUrl: fetchController.fetchedImageUrl,
+            inProgress: false,
+          );
+        }
         imageFound = true;
+        break;
+      }
+
+      // Check if polling was cancelled or disposed before delay
+      if (_isPollingCancelled || _isDisposed) {
+        print('Polling cancelled or disposed before delay');
         break;
       }
 
@@ -44,12 +56,22 @@ mixin PollingResultMixin {
       attempts++;
     }
 
-    if (!imageFound) {
+    if (!imageFound && !_isPollingCancelled && !_isDisposed) {
       controller.updateState(
         errorMessage: 'Could not retrieve processed image after $maxAttempts attempts',
         inProgress: false,
       );
       print('Failed to retrieve image after multiple attempts');
     }
+  }
+
+  void cancelPolling() {
+    _isPollingCancelled = true;
+    print('Polling cancelled');
+  }
+
+  void markAsDisposed() {
+    _isDisposed = true;
+    print('Polling marked as disposed');
   }
 }

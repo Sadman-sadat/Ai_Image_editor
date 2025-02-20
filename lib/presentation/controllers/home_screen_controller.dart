@@ -3,37 +3,42 @@ import 'package:get/get.dart';
 class HomeScreenController extends GetxController {
   final RxList<Map<String, dynamic>> _allFeatures = [
     {
-      'imageUrl': 'https://i.ytimg.com/vi/7Llzzqjnc0Q/hq720.jpg',
+      'imageAsset': 'assets/images/background-removal.png',
       'title': 'Background Removal',
       'screen': 'background_removal',
     },
     {
-      'imageUrl': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ3Aky-4DBKvhkapPACIOOajqox5yNJqBb-AQ&s',
+      'imageAsset': 'assets/images/face_swap.png',
       'title': 'Face Swap',
       'screen': 'face_swap',
     },
+    // {
+    //   'imageAsset': 'assets/images/relighting.png',
+    //   'title': 'Relighting',
+    //   'screen': 'relighting',
+    // },
     {
-      'imageUrl': 'https://ikancorp.com/prod1/wp-content/uploads/2021/01/g6nco7j51FWksJzLk7v098tJdVMJEqhU1611237455.jpg',
-      'title': 'Relighting',
-      'screen': 'relighting',
+      'imageAsset': 'assets/images/interior-design.png',
+      'title': 'Interior Design Generation',
+      'screen': 'interior_design_gen',
     },
     {
-      'imageUrl': 'https://krikey-ai.ghost.io/content/images/size/w1000/2024/08/Generate-AI-Avatar-with-tools-like-Krikey-AI-to-make-animated-videos-with-voice-AI.jpg',
+      'imageAsset': 'assets/images/create-avatar.png',
       'title': 'Avatar Gen',
       'screen': 'avatar_gen',
     },
     {
-      'imageUrl': 'https://www.ifoto.ai/_nuxt/img/face-replace.0143a8f.webp',
+      'imageAsset': 'assets/images/face_gen.png',
       'title': 'Face Gen',
       'screen': 'head_shot_gen',
     },
     {
-      'imageUrl': 'https://i.pcmag.com/imagery/articles/00sSbBtLdbrpARnLKnUr21s-5.fit_lim.size_1600x900.v1692217579.png',
+      'imageAsset': 'assets/images/object_removal.png',
       'title': 'Object Removal',
       'screen': 'object_removal',
     },
     {
-      'imageUrl': 'https://zenithclipping.com/wp-content/uploads/2024/04/Image-Enhancement-Service-1024x683.jpg',
+      'imageAsset': 'assets/images/image_enhancer.png',
       'title': 'Image Enhancement',
       'screen': 'image_enhancement',
     },
@@ -80,6 +85,9 @@ class HomeScreenController extends GetxController {
         break;
       case 'relighting':
         Get.toNamed('/relighting');
+        break;
+      case 'interior_design_gen':
+        Get.toNamed('/interior_design_gen');
         break;
       case 'avatar_gen':
         Get.toNamed('/avatar_gen');

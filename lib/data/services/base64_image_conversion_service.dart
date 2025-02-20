@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'package:image_ai_editor/data/models/base64_image_conversion_model.dart';
-import 'package:image_ai_editor/data/services/network_caller.dart';
-import 'package:image_ai_editor/data/utility/urls.dart';
+import 'package:appear_ai_image_editor/data/models/base64_image_conversion_model.dart';
+import 'package:appear_ai_image_editor/data/services/network_caller.dart';
+import 'package:appear_ai_image_editor/data/utility/urls.dart';
 
 class Base64ImageConversionService {
   final NetworkCaller _networkCaller = NetworkCaller();

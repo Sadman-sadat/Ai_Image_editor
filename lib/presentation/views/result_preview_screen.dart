@@ -1,22 +1,24 @@
+import 'package:appear_ai_image_editor/presentation/controllers/interior_design_controller.dart';
+import 'package:appear_ai_image_editor/presentation/widgets/result_preview/result_preview_report.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:image_ai_editor/data/services/download_image_service.dart';
-import 'package:image_ai_editor/data/services/image_storage_service.dart';
-import 'package:image_ai_editor/presentation/controllers/avatar_gen_controller.dart';
-import 'package:image_ai_editor/presentation/controllers/background_removal_controller.dart';
-import 'package:image_ai_editor/presentation/controllers/comparison_controller.dart';
-import 'package:image_ai_editor/presentation/controllers/face_swap_controller.dart';
-import 'package:image_ai_editor/presentation/controllers/fetch_queued_image_controller.dart';
-import 'package:image_ai_editor/presentation/controllers/head_shot_gen_controller.dart';
-import 'package:image_ai_editor/presentation/controllers/image_enhancement_controller.dart';
-import 'package:image_ai_editor/presentation/controllers/object_removal_controller.dart';
-import 'package:image_ai_editor/presentation/controllers/processing_controller.dart';
-import 'package:image_ai_editor/presentation/controllers/relighting_controller.dart';
-import 'package:image_ai_editor/presentation/widgets/result_preview/result_preview_content.dart';
-import 'package:image_ai_editor/presentation/widgets/result_preview/result_preview_error.dart';
-import 'package:image_ai_editor/presentation/widgets/result_preview/result_preview_loading.dart';
-import 'package:image_ai_editor/presentation/widgets/snack_bar_message.dart';
-import 'package:image_ai_editor/processing_type.dart';
+import 'package:appear_ai_image_editor/data/services/download_image_service.dart';
+//import 'package:appear_ai_image_editor/data/services/image_storage_service.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/avatar_gen_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/background_removal_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/comparison_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/face_swap_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/fetch_queued_image_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/head_shot_gen_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/image_enhancement_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/object_removal_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/processing_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/relighting_controller.dart';
+import 'package:appear_ai_image_editor/presentation/widgets/result_preview/result_preview_content.dart';
+import 'package:appear_ai_image_editor/presentation/widgets/result_preview/result_preview_error.dart';
+import 'package:appear_ai_image_editor/presentation/widgets/result_preview/result_preview_loading.dart';
+import 'package:appear_ai_image_editor/presentation/widgets/snack_bar_message.dart';
+import 'package:appear_ai_image_editor/processing_type.dart';
 
 class ResultPreviewScreen extends StatefulWidget {
   final String base64Image;
@@ -32,7 +34,8 @@ class ResultPreviewScreen extends StatefulWidget {
       required this.processingType,
       this.maskImage,
       this.textPrompt,
-      this.comparisonMode, this.positionLighting});
+      this.comparisonMode,
+      this.positionLighting});
 
   @override
   State<ResultPreviewScreen> createState() => _ResultPreviewScreenState();
@@ -52,6 +55,12 @@ class _ResultPreviewScreenState extends State<ResultPreviewScreen> {
     _startProcessing();
   }
 
+  @override
+  void dispose() {
+    activeController.onClose(); // This will trigger the polling cancellation
+    super.dispose();
+  }
+
   ProcessingController _getControllerForType(ProcessingType type) {
     switch (type) {
       case ProcessingType.backgroundRemoval:
@@ -68,6 +77,8 @@ class _ResultPreviewScreenState extends State<ResultPreviewScreen> {
         return Get.find<AvatarGenController>();
       case ProcessingType.faceSwap:
         return Get.find<FaceSwapController>();
+      case ProcessingType.interiorDesignGen:
+        return Get.find<InteriorDesignController>();
     }
   }
 
@@ -115,8 +126,8 @@ class _ResultPreviewScreenState extends State<ResultPreviewScreen> {
         break;
       case ProcessingType.relighting:
         if (widget.textPrompt != null) {
-          (activeController as RelightingController)
-              .generateRelighting(widget.base64Image, widget.positionLighting!, widget.textPrompt!);
+          (activeController as RelightingController).generateRelighting(
+              widget.base64Image, widget.positionLighting!, widget.textPrompt!);
         } else {
           showSnackBarMessage(
             title: 'Error',
@@ -125,20 +136,33 @@ class _ResultPreviewScreenState extends State<ResultPreviewScreen> {
           );
         }
       case ProcessingType.avatarGen:
-      if (widget.textPrompt != null) {
         (activeController as AvatarGenController)
-            .generateAvatar(widget.base64Image, widget.textPrompt!);
-      } else {
-        showSnackBarMessage(
-          title: 'Error',
-          message: 'Prompt Text is required for Avatar Generator',
-          colorText: Colors.red,
-        );
-      }
+            .generateAvatar(widget.base64Image, 'widget.textPrompt!');
+      // if (widget.textPrompt != null) {
+      //   (activeController as AvatarGenController)
+      //       .generateAvatar(widget.base64Image, widget.textPrompt!);
+      // } else {
+      //   showSnackBarMessage(
+      //     title: 'Error',
+      //     message: 'Prompt Text is required for Avatar Generator',
+      //     colorText: Colors.red,
+      //   );
+      // }
       case ProcessingType.faceSwap:
         (activeController as FaceSwapController)
             .swapFace(widget.base64Image, widget.maskImage!);
         break;
+      case ProcessingType.interiorDesignGen:
+        if (widget.textPrompt != null) {
+          (activeController as InteriorDesignController)
+              .generateInteriorDesign(widget.base64Image, widget.textPrompt!);
+        } else {
+          showSnackBarMessage(
+            title: 'Error',
+            message: 'Prompt Text is required for Interior Design Generation',
+            colorText: Colors.red,
+          );
+        }
     }
   }
 
@@ -183,17 +207,20 @@ class _ResultPreviewScreenState extends State<ResultPreviewScreen> {
     _fetchQueuedImageController.clearFetchedImageUrl();
     activeController.clearCurrentProcess();
 
-    final storageService = Get.find<ImageStorageService>();
-    storageService.removeImageData(
-      base64Image: widget.base64Image,
-      processingType: widget.processingType.storageKey,
-    );
+    // final storageService = Get.find<ImageStorageService>();
+    // storageService.removeImageData(
+    //   base64Image: widget.base64Image,
+    //   processingType: widget.processingType.storageKey,
+    // );
 
     _startProcessing();
   }
 
   @override
   Widget build(BuildContext context) {
+    print('DEBUG: ResultPreviewScreen build - Processing: ${_checkIsProcessing()}');
+    print('DEBUG: Active Image URL: ${_getActiveImageUrl()}');
+    print('DEBUG: Controller Result URL: ${activeController.resultImageUrl}');
     return Scaffold(
       appBar: AppBar(
           title: Text(
@@ -211,7 +238,7 @@ class _ResultPreviewScreenState extends State<ResultPreviewScreen> {
                       comparisonController.isComparisonMode
                           ? Icons.compare_arrows_rounded
                           : Icons.compare_outlined,
-                      color: Colors.black,
+                      color: Colors.white,
                     ),
                     onPressed: comparisonController.toggleComparisonMode,
                   );
@@ -220,7 +247,8 @@ class _ResultPreviewScreenState extends State<ResultPreviewScreen> {
                   return Container();
                 }
               },
-            )
+            ),
+            const ReportButton(),
           ]),
       body: SafeArea(
         child: Column(
@@ -265,9 +293,10 @@ class _ResultPreviewScreenState extends State<ResultPreviewScreen> {
                           if (isProcessing) {
                             return ResultPreviewLoading(
                               isLoading: controller.inProgress,
-                              processingText:
-                                  widget.processingType.processingText,
+                              //processingText: widget.processingType.processingText,
                               generationTime: controller.generationTime,
+                              base64Image: widget.base64Image,
+                              processingType: widget.processingType,
                             );
                           }
 

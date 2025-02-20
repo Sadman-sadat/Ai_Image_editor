@@ -23,7 +23,7 @@ class AvatarGenModel {
     required this.apiKey,
     required this.prompt,
     required this.initImage,
-    this.negativePrompt = 'anime, cartoon, drawing, big nose, long nose, fat, ugly, big lips, big mouth, face proportion mismatch, unrealistic, monochrome, lowres, bad anatomy, worst quality, low quality, blurry',
+    this.negativePrompt = 'drawing, big nose, long nose, fat, ugly, big lips, big mouth, face proportion mismatch, unrealistic, monochrome, lowres, bad anatomy, worst quality, low quality, blurry',
     this.width = 512,
     this.height = 512,
     this.samples = 1,

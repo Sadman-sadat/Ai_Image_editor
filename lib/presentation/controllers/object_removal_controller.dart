@@ -1,16 +1,14 @@
 import 'package:get/get.dart';
-import 'package:image_ai_editor/data/models/object_removal_model.dart';
-import 'package:image_ai_editor/data/services/object_removal_service.dart';
-import 'package:image_ai_editor/data/services/image_storage_service.dart';
-import 'package:image_ai_editor/data/utility/urls.dart';
-import 'package:image_ai_editor/presentation/controllers/fetch_queued_image_controller.dart';
-import 'package:image_ai_editor/presentation/controllers/polling_result_controller.dart';
-import 'package:image_ai_editor/presentation/controllers/processing_controller.dart';
-import 'package:image_ai_editor/processing_type.dart';
+import 'package:appear_ai_image_editor/data/models/object_removal_model.dart';
+import 'package:appear_ai_image_editor/data/services/object_removal_service.dart';
+import 'package:appear_ai_image_editor/data/utility/urls.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/fetch_queued_image_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/polling_result_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/processing_controller.dart';
+import 'package:appear_ai_image_editor/processing_type.dart';
 
 class ObjectRemovalController extends ProcessingController with PollingResultMixin {
   final ObjectRemovalService _objectRemovalService = ObjectRemovalService();
-  final ImageStorageService _storageService = Get.find();
   final FetchQueuedImageController _fetchController = Get.find();
 
   String? _currentMask;
@@ -39,6 +37,8 @@ class ObjectRemovalController extends ProcessingController with PollingResultMix
 
   Future<bool> removeObject(String base64Original, String base64Mask) async {
     bool isSuccess = false;
+    _objectRemovalService.resetCancellation();
+
     updateState(
       inProgress: true,
       errorMessage: '',
@@ -47,20 +47,6 @@ class ObjectRemovalController extends ProcessingController with PollingResultMix
     );
 
     try {
-      // Check storage first
-      final storedData = _storageService.getImageData(
-        base64Image: base64Original,
-        processingType: ProcessingType.objectRemoval.storageKey,
-      );
-
-      if (storedData != null && storedData['processedUrl']?.isNotEmpty == true) {
-        updateState(
-          resultImageUrl: storedData['processedUrl']!,
-          inProgress: false,
-        );
-        return true;
-      }
-
       ObjectRemovalModel model = ObjectRemovalModel(
         apiKey: Urls.api_Key,
         initImage: base64Original,
@@ -71,23 +57,14 @@ class ObjectRemovalController extends ProcessingController with PollingResultMix
       print('Object Removal Response: $response');
 
       if (response.containsKey('output') && response['output'] != null) {
-        // Immediate output available
         updateState(
           resultImageUrl: response['output'],
           generationTime: response['generationTime'] ?? 0.0,
           inProgress: false,
         );
 
-        // Store the processed image
-        _storageService.storeImageData(
-          base64Image: base64Original,
-          processedUrl: resultImageUrl,
-          processingType: ProcessingType.objectRemoval.storageKey,
-        );
-
         isSuccess = true;
       } else if (response.containsKey('id')) {
-        // Queued processing, need to poll
         final trackerId = response['id'].toString();
         print('Tracker ID received: $trackerId');
 
@@ -96,12 +73,9 @@ class ObjectRemovalController extends ProcessingController with PollingResultMix
           generationTime: response['generationTime'] ?? 0.0,
         );
 
-        // More aggressive polling
         await _startPollingForResult(base64Original, trackerId);
 
-        // Check if image was successfully retrieved
         isSuccess = resultImageUrl.isNotEmpty;
-
         print('Polling result - Success: $isSuccess, Image URL: $resultImageUrl');
       }
     } catch (e, stackTrace) {
@@ -119,9 +93,7 @@ class ObjectRemovalController extends ProcessingController with PollingResultMix
   Future<void> _startPollingForResult(String base64Image, String trackerId) async {
     await startPollingForResult(
       controller: this,
-      base64Image: base64Image,
       trackerId: trackerId,
-      processingType: ProcessingType.backgroundRemoval,
     );
   }
 
@@ -130,5 +102,20 @@ class ObjectRemovalController extends ProcessingController with PollingResultMix
     super.clearCurrentProcess();
     _currentMask = null;
     _currentImage = null;
+    _objectRemovalService.cancelRequest();
+  }
+
+  @override
+  void cancelProcessing() {
+    _objectRemovalService.cancelRequest();
+    _objectRemovalService.markAsDisposed();
+    super.cancelProcessing();
+    clearCurrentProcess();
+  }
+
+  @override
+  void onClose() {
+    cancelProcessing();
+    super.onClose();
   }
 }

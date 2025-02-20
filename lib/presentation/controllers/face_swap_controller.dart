@@ -1,16 +1,14 @@
 import 'package:get/get.dart';
-import 'package:image_ai_editor/data/models/face_swap_model.dart';
-import 'package:image_ai_editor/data/services/face_swap_service.dart';
-import 'package:image_ai_editor/data/services/image_storage_service.dart';
-import 'package:image_ai_editor/data/utility/urls.dart';
-import 'package:image_ai_editor/presentation/controllers/fetch_queued_image_controller.dart';
-import 'package:image_ai_editor/presentation/controllers/polling_result_controller.dart';
-import 'package:image_ai_editor/presentation/controllers/processing_controller.dart';
-import 'package:image_ai_editor/processing_type.dart';
+import 'package:appear_ai_image_editor/data/models/face_swap_model.dart';
+import 'package:appear_ai_image_editor/data/services/face_swap_service.dart';
+import 'package:appear_ai_image_editor/data/utility/urls.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/fetch_queued_image_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/polling_result_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/processing_controller.dart';
+import 'package:appear_ai_image_editor/processing_type.dart';
 
 class FaceSwapController extends ProcessingController with PollingResultMixin {
   final FaceSwapService _faceSwapService = FaceSwapService();
-  final ImageStorageService _storageService = Get.find();
   final FetchQueuedImageController _fetchController = Get.find();
 
   String? _currentTargetImage;
@@ -28,8 +26,8 @@ class FaceSwapController extends ProcessingController with PollingResultMixin {
   Future<bool> processImage(String base64Image) async {
     if (_currentTargetImage == null) {
       updateState(
-          errorMessage: 'No target image provided for face swap',
-          inProgress: false
+        errorMessage: 'No target image provided for face swap',
+        inProgress: false,
       );
       return false;
     }
@@ -39,6 +37,7 @@ class FaceSwapController extends ProcessingController with PollingResultMixin {
 
   Future<bool> swapFace(String base64Original, String base64Target) async {
     bool isSuccess = false;
+    _faceSwapService.resetCancellation();
     updateState(
       inProgress: true,
       errorMessage: '',
@@ -47,21 +46,7 @@ class FaceSwapController extends ProcessingController with PollingResultMixin {
     );
 
     try {
-      // Check storage first
-      final storedData = _storageService.getImageData(
-        base64Image: base64Original,
-        processingType: ProcessingType.faceSwap.storageKey,
-      );
-
-      if (storedData != null && storedData['processedUrl']?.isNotEmpty == true) {
-        updateState(
-          resultImageUrl: storedData['processedUrl']!,
-          inProgress: false,
-        );
-        return true;
-      }
-
-      //swap init and target image places
+      // Initialize the face swap process
       FaceSwapModel model = FaceSwapModel(
         apiKey: Urls.api_Key,
         initImage: base64Target,
@@ -77,13 +62,6 @@ class FaceSwapController extends ProcessingController with PollingResultMixin {
           resultImageUrl: response['output'],
           generationTime: response['generationTime'] ?? 0.0,
           inProgress: false,
-        );
-
-        // Store the processed image
-        _storageService.storeImageData(
-          base64Image: base64Original,
-          processedUrl: resultImageUrl,
-          processingType: ProcessingType.faceSwap.storageKey,
         );
 
         isSuccess = true;
@@ -120,9 +98,7 @@ class FaceSwapController extends ProcessingController with PollingResultMixin {
   Future<void> _startPollingForResult(String base64Image, String trackerId) async {
     await startPollingForResult(
       controller: this,
-      base64Image: base64Image,
       trackerId: trackerId,
-      processingType: ProcessingType.faceSwap,
     );
   }
 
@@ -131,5 +107,20 @@ class FaceSwapController extends ProcessingController with PollingResultMixin {
     super.clearCurrentProcess();
     _currentTargetImage = null;
     _currentImage = null;
+    _faceSwapService.resetCancellation();
+  }
+
+  @override
+  void cancelProcessing() {
+    _faceSwapService.cancelRequest();
+    _faceSwapService.markAsDisposed();
+    super.cancelProcessing();
+    clearCurrentProcess();
+  }
+
+  @override
+  void onClose() {
+    cancelProcessing();
+    super.onClose();
   }
 }

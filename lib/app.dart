@@ -1,16 +1,18 @@
+import 'package:appear_ai_image_editor/presentation/views/interior_design_generation_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:image_ai_editor/controller_binder.dart';
-import 'package:image_ai_editor/presentation/utility/app_colors.dart';
-import 'package:image_ai_editor/presentation/utility/gradient_background_wrapper.dart';
-import 'package:image_ai_editor/presentation/views/avatar_gen_screen.dart';
-import 'package:image_ai_editor/presentation/views/background_removal_screen.dart';
-import 'package:image_ai_editor/presentation/views/face_swap_screen.dart';
-import 'package:image_ai_editor/presentation/views/head_shot_gen_screen.dart';
-import 'package:image_ai_editor/presentation/views/image_enhancement_screen.dart';
-import 'package:image_ai_editor/presentation/views/object_removal_screen.dart';
-import 'package:image_ai_editor/presentation/views/relighting_screen.dart';
-import 'package:image_ai_editor/presentation/views/splash_screen.dart';
+import 'package:appear_ai_image_editor/controller_binder.dart';
+import 'package:appear_ai_image_editor/presentation/utility/app_colors.dart';
+//import 'package:appear_ai_image_editor/presentation/utility/gradient_background_wrapper.dart';
+import 'package:appear_ai_image_editor/presentation/utility/image_background_wrapper.dart';
+import 'package:appear_ai_image_editor/presentation/views/avatar_gen_screen.dart';
+import 'package:appear_ai_image_editor/presentation/views/background_removal_screen.dart';
+import 'package:appear_ai_image_editor/presentation/views/face_swap_screen.dart';
+import 'package:appear_ai_image_editor/presentation/views/head_shot_gen_screen.dart';
+import 'package:appear_ai_image_editor/presentation/views/image_enhancement_screen.dart';
+import 'package:appear_ai_image_editor/presentation/views/object_removal_screen.dart';
+import 'package:appear_ai_image_editor/presentation/views/relighting_screen.dart';
+import 'package:appear_ai_image_editor/presentation/views/splash_screen.dart';
 
 class AIImageEditor extends StatefulWidget {
   const AIImageEditor({super.key});
@@ -25,7 +27,7 @@ class _AIImageEditorState extends State<AIImageEditor> {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'AI Image Editor',
-      home: const SplashScreen(),
+      home: SplashScreen(),
       initialBinding: ControllerBinder(),
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.transparent,
@@ -60,31 +62,43 @@ class _AIImageEditorState extends State<AIImageEditor> {
         GetPage(name: '/face_swap', page: () => const FaceSwapScreen()),
         GetPage(name: '/head_shot_gen', page: () => const HeadShotGenScreen()),
         GetPage(name: '/avatar_gen', page: () => const AvatarGenScreen()),
+        GetPage(name: '/interior_design_gen', page: () => const InteriorDesignGenScreen()),
         GetPage(name: '/relighting', page: () => const RelightingScreen()),
         GetPage(name: '/object_removal', page: () => const ObjectRemovalScreen()),
         GetPage(name: '/image_enhancement', page: () => const ImageEnhancementScreen()),
       ],
+
+      // builder: (context, child) {
+      //   return GradientBackgroundWrapper(child: child!);
+      // },
+
       builder: (context, child) {
-        return GradientBackgroundWrapper(child: child!);
+        return ImageBackgroundWrapper(
+          //imagePath: 'assets/images/bg.png',  // Replace with your image path
+          imagePath: 'assets/images/background.jpg',  // Replace with your image path
+          //overlayColor: Colors.black,  // Optional: adds a color overlay
+          //overlayOpacity: 0.3,  // Optional: controls overlay opacity
+          child: child!,
+        );
       },
     );
   }
 
   TextTheme buildTextTheme() {
     return const TextTheme(
-          bodyLarge: TextStyle(color: Colors.white),
-          bodyMedium: TextStyle(color: Colors.white),
-          displayLarge: TextStyle(color: Colors.white),
-          displayMedium: TextStyle(color: Colors.white),
-          displaySmall: TextStyle(color: Colors.white),
-          headlineMedium: TextStyle(color: Colors.white),
-          headlineSmall: TextStyle(color: Colors.white),
-          titleLarge: TextStyle(color: Colors.white),
-          titleMedium: TextStyle(color: Colors.white),
-          titleSmall: TextStyle(color: Colors.white),
-          labelLarge: TextStyle(color: Colors.white),
-          bodySmall: TextStyle(color: Colors.white),
-          labelSmall: TextStyle(color: Colors.white),
+          bodyLarge: TextStyle(color: Colors.black),
+          bodyMedium: TextStyle(color: Colors.black),
+          displayLarge: TextStyle(color: Colors.black),
+          displayMedium: TextStyle(color: Colors.black),
+          displaySmall: TextStyle(color: Colors.black),
+          headlineMedium: TextStyle(color: Colors.black),
+          headlineSmall: TextStyle(color: Colors.black),
+          titleLarge: TextStyle(color: Colors.black),
+          titleMedium: TextStyle(color: Colors.black),
+          titleSmall: TextStyle(color: Colors.black),
+          labelLarge: TextStyle(color: Colors.black),
+          bodySmall: TextStyle(color: Colors.black),
+          labelSmall: TextStyle(color: Colors.black),
         );
   }
 

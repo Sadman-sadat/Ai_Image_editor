@@ -1,3 +1,4 @@
+import 'package:appear_ai_image_editor/presentation/controllers/polling_result_controller.dart';
 import 'package:get/get.dart';
 
 abstract class ProcessingController extends GetxController {
@@ -27,6 +28,22 @@ abstract class ProcessingController extends GetxController {
     );
   }
 
+  // Add cancel method to be called in onClose
+  void cancelProcessing() {
+    if (this is PollingResultMixin) {
+      (this as PollingResultMixin).cancelPolling();
+      (this as PollingResultMixin).markAsDisposed();
+    }
+    clearCurrentProcess();
+  }
+
+  // Override onClose to ensure cancellation
+  @override
+  void onClose() {
+    cancelProcessing();
+    super.onClose();
+  }
+
   // Helper method to update state
   void updateState({
     bool? inProgress,
@@ -35,11 +52,14 @@ abstract class ProcessingController extends GetxController {
     String? trackedId,
     double? generationTime,
   }) {
-    _inProgress = inProgress ?? _inProgress;
-    _errorMessage = errorMessage ?? _errorMessage;
-    _resultImageUrl = resultImageUrl ?? _resultImageUrl;
-    _trackedId = trackedId ?? _trackedId;
-    _generationTime = generationTime ?? _generationTime;
-    update();
+    // Only update state if not disposed
+    if (!isClosed) {
+      _inProgress = inProgress ?? _inProgress;
+      _errorMessage = errorMessage ?? _errorMessage;
+      _resultImageUrl = resultImageUrl ?? _resultImageUrl;
+      _trackedId = trackedId ?? _trackedId;
+      _generationTime = generationTime ?? _generationTime;
+      update();
+    }
   }
 }

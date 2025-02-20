@@ -1,4 +1,4 @@
-import 'package:image_ai_editor/presentation/widgets/snack_bar_message.dart';
+import 'package:appear_ai_image_editor/presentation/widgets/snack_bar_message.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'dart:io';

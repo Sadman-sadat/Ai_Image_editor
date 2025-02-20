@@ -1,17 +1,18 @@
+// remove double update code delayed
+import 'package:appear_ai_image_editor/presentation/controllers/image_processing_settings_controller.dart';
 import 'package:get/get.dart';
-import 'package:image_ai_editor/data/models/image_enhancement_model.dart';
-import 'package:image_ai_editor/data/services/image_enhancement_service.dart';
-import 'package:image_ai_editor/data/services/image_storage_service.dart';
-import 'package:image_ai_editor/data/utility/urls.dart';
-import 'package:image_ai_editor/presentation/controllers/fetch_queued_image_controller.dart';
-import 'package:image_ai_editor/presentation/controllers/polling_result_controller.dart';
-import 'package:image_ai_editor/presentation/controllers/processing_controller.dart';
-import 'package:image_ai_editor/processing_type.dart';
+import 'package:appear_ai_image_editor/data/models/image_enhancement_model.dart';
+import 'package:appear_ai_image_editor/data/services/image_enhancement_service.dart';
+import 'package:appear_ai_image_editor/data/utility/urls.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/fetch_queued_image_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/polling_result_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/processing_controller.dart';
+import 'package:appear_ai_image_editor/processing_type.dart';
 
 class ImageEnhancementController extends ProcessingController with PollingResultMixin {
   final ImageEnhancementService _imageEnhancementService = ImageEnhancementService();
-  final ImageStorageService _storageService = Get.find();
   final FetchQueuedImageController _fetchController = Get.find();
+  final ImageProcessingSettingsController _settingsController = Get.find();
 
   @override
   Future<bool> processImage(String base64Image) async {
@@ -20,6 +21,8 @@ class ImageEnhancementController extends ProcessingController with PollingResult
 
   Future<bool> enhanceImage(String base64Image) async {
     bool isSuccess = false;
+    _imageEnhancementService.resetCancellation();
+
     updateState(
       inProgress: true,
       errorMessage: '',
@@ -28,63 +31,47 @@ class ImageEnhancementController extends ProcessingController with PollingResult
     );
 
     try {
-      // Check storage first
-      final storedData = _storageService.getImageData(
-        base64Image: base64Image,
-        processingType: ProcessingType.imageEnhancement.storageKey,
-      );
-
-      if (storedData != null && storedData['processedUrl']?.isNotEmpty == true) {
-        updateState(
-          resultImageUrl: storedData['processedUrl']!,
-          inProgress: false,
-        );
-        return true;
-      }
-
       ImageEnhancementModel model = ImageEnhancementModel(
         apiKey: Urls.api_Key,
         image: base64Image,
+        scale: _settingsController.scale,
       );
 
       Map response = await _imageEnhancementService.enhancementImage(model);
-      print('Image Enhancement Response: $response'); // Diagnostic print
+      print('Image Enhancement Response: $response');
 
       if (response.containsKey('output') && response['output'] != null) {
-        // Immediate output available
+        // updateState(
+        //   resultImageUrl: response['output'],
+        //   generationTime: response['generationTime'] ?? 0.0,
+        //   inProgress: false,
+        // );
+
+        final imageUrl = response['output'];
+
+        // ✅ Wait before assigning URL
+        await Future.delayed(Duration(seconds: 5));  // Adjust delay if needed
+
         updateState(
-          resultImageUrl: response['output'],
+          resultImageUrl: imageUrl,
           generationTime: response['generationTime'] ?? 0.0,
           inProgress: false,
         );
 
-        // Store the processed image
-        _storageService.storeImageData(
-          base64Image: base64Image,
-          processedUrl: resultImageUrl,
-          processingType: ProcessingType.imageEnhancement.storageKey,
-        );
-
-        //extra update for some reason here it doesn't update with updateState
-        update();
         isSuccess = true;
       } else if (response.containsKey('id')) {
-        // Queued processing, need to poll
         final trackerId = response['id'].toString();
-        print('Tracker ID received: $trackerId'); // Diagnostic print
+        print('Tracker ID received: $trackerId');
 
         updateState(
           trackedId: trackerId,
           generationTime: response['generationTime'] ?? 0.0,
         );
 
-        // More aggressive polling
         await _startPollingForResult(base64Image, trackerId);
 
-        // Check if image was successfully retrieved
         isSuccess = resultImageUrl.isNotEmpty;
-
-        print('Polling result - Success: $isSuccess, Image URL: $resultImageUrl'); // Diagnostic print
+        print('Polling result - Success: $isSuccess, Image URL: $resultImageUrl');
       }
     } catch (e, stackTrace) {
       updateState(
@@ -101,9 +88,7 @@ class ImageEnhancementController extends ProcessingController with PollingResult
   Future<void> _startPollingForResult(String base64Image, String trackerId) async {
     await startPollingForResult(
       controller: this,
-      base64Image: base64Image,
       trackerId: trackerId,
-      processingType: ProcessingType.backgroundRemoval,
     );
   }
 
@@ -116,5 +101,20 @@ class ImageEnhancementController extends ProcessingController with PollingResult
       inProgress: false,
     );
     _fetchController.clearFetchedImageUrl();
+    _imageEnhancementService.cancelRequest();
+  }
+
+  @override
+  void cancelProcessing() {
+    _imageEnhancementService.cancelRequest();
+    _imageEnhancementService.markAsDisposed();
+    super.cancelProcessing();
+    clearCurrentProcess();
+  }
+
+  @override
+  void onClose() {
+    cancelProcessing();
+    super.onClose();
   }
 }

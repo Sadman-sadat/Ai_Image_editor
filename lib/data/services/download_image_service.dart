@@ -3,92 +3,133 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:path/path.dart' as path;
 
 class DownloadImageService {
-  static const _channel = MethodChannel('com.daydreamers.aiImgtools/media_scanner');
+  static const _channel = MethodChannel('com.appera.appearai/media_scanner');
 
   Future<String> downloadAndSaveImage(String imageUrl) async {
     try {
-      // Request permissions
-      if (!await _requestPermissions()) {
-        throw Exception('Required permissions not granted');
+      // Force permission check before proceeding
+      final hasPermission = await _forceCheckPermissions();
+      if (!hasPermission) {
+        throw Exception('Storage permission required.');
       }
 
-      // Download image
+      // Download the image
       final response = await http.get(Uri.parse(imageUrl));
       if (response.statusCode != 200) {
         throw Exception('Failed to download image: ${response.statusCode}');
       }
 
-      // Get storage directory
-      final directory = Platform.isAndroid
-          ? await getExternalStorageDirectory()
-          : await getApplicationDocumentsDirectory();
-
-      if (directory == null) {
-        throw Exception('Could not access storage directory');
+      // Save the image to the gallery
+      final savedPath = await _saveImageToGallery(response.bodyBytes);
+      if (savedPath == null) {
+        throw Exception('Failed to save image to gallery');
       }
 
-      // Create AI Images directory if it doesn't exist
-      final aiImagesDir = Directory('${directory.path}/AI_Images');
-      if (!await aiImagesDir.exists()) {
-        await aiImagesDir.create(recursive: true);
-      }
-
-      // Create unique filename
-      final filename = 'AI_edited_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      final filePath = path.join(aiImagesDir.path, filename);
-
-      // Save the file
-      final file = File(filePath);
-      await file.writeAsBytes(response.bodyBytes);
-
-      // Make file visible in gallery (Android only)
-      if (Platform.isAndroid) {
-        try {
-          await _scanFile(filePath);
-        } catch (e) {
-          print('Media scanner error: $e');
-          // Continue even if scan fails - file is still saved
-        }
-      }
-
-      return filePath;
+      return savedPath;
     } catch (e) {
       throw Exception('Download failed: $e');
     }
   }
 
-  Future<bool> _requestPermissions() async {
-    if (Platform.isIOS) {
-      final photosStatus = await Permission.photos.request();
-      return photosStatus.isGranted;
-    } else {
-      // For Android
-      final storageStatus = await Permission.storage.request();
+  Future<bool> _forceCheckPermissions() async {
+    if (!Platform.isAndroid) {
+      return await Permission.photos.request().isGranted;
+    }
 
-      // For Android 10 and below, storage permission is enough
-      if (storageStatus.isGranted) return true;
+    // Get Android version
+    final androidVersion = await _getAndroidSDKVersion();
 
-      // For Android 11+, try to request manage external storage
-      try {
-        final managedStorageStatus = await Permission.manageExternalStorage.request();
-        return managedStorageStatus.isGranted;
-      } catch (e) {
-        // If permission doesn't exist or fails, fall back to regular storage permission
-        return storageStatus.isGranted;
+    // For Android 13 and above (API 33+)
+    if (androidVersion >= 33) {
+      final status = await Permission.photos.status;
+      if (status.isDenied) {
+        final result = await Permission.photos.request();
+        return result.isGranted;
       }
+      return status.isGranted;
+    }
+    // For Android 12 and below
+    else {
+      // First check if permission is already granted
+      final storageStatus = await Permission.storage.status;
+      if (storageStatus.isDenied) {
+        // Force show the permission dialog
+        final result = await [
+          Permission.storage,
+          Permission.manageExternalStorage,
+        ].request();
+
+        // Check if all permissions are granted
+        return result.values.every((status) => status.isGranted);
+      }
+      return storageStatus.isGranted;
     }
   }
 
-  Future<void> _scanFile(String filePath) async {
+  Future<int> _getAndroidSDKVersion() async {
+    if (!Platform.isAndroid) return 0;
+
     try {
-      final result = await _channel.invokeMethod('scanFile', {'path': filePath});
-      print('Media scan completed: $result');
+      final platformVersion = await _channel.invokeMethod<String>('getSDKVersion');
+      return int.parse(platformVersion ?? '0');
     } catch (e) {
-      print('Failed to scan file: $e');
-      rethrow;
+      print('Failed to get Android SDK version: $e');
+      return 0;
+    }
+  }
+
+  Future<String?> _saveImageToGallery(Uint8List imageBytes) async {
+    final directory = await _getGalleryDirectory();
+    if (directory == null) {
+      throw Exception('Unable to access media directory');
+    }
+
+    // Ensure directory exists
+    if (!await directory.exists()) {
+      await directory.create(recursive: true);
+    }
+
+    final fileName = 'AI_edited_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final filePath = '${directory.path}/$fileName';
+
+    try {
+      final file = File(filePath);
+      await file.writeAsBytes(imageBytes);
+      await _notifyGallery(filePath);
+      return filePath;
+    } catch (e) {
+      print('Error saving file: $e');
+      throw Exception('Failed to save image');
+    }
+  }
+
+  Future<Directory?> _getGalleryDirectory() async {
+    if (Platform.isAndroid) {
+      // For Android, use the Pictures directory
+      final androidVersion = await _getAndroidSDKVersion();
+      if (androidVersion >= 33) {
+        // For Android 13+, use app-specific directory
+        final appDir = await getExternalStorageDirectory();
+        return Directory('${appDir?.path}/Pictures/APPEAR');
+      } else {
+        // For Android 12 and below, use public directory
+        return Directory('/storage/emulated/0/Pictures/APPEAR');
+      }
+    } else if (Platform.isIOS) {
+      return await getApplicationDocumentsDirectory();
+    }
+    return null;
+  }
+
+  Future<void> _notifyGallery(String filePath) async {
+    if (Platform.isAndroid) {
+      try {
+        await _channel.invokeMethod('scanFile', {'path': filePath});
+      } catch (e) {
+        print('Media scanner error: $e');
+      }
     }
   }
 }

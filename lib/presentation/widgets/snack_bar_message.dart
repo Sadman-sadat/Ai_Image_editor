@@ -6,7 +6,7 @@ void showSnackBarMessage({
   required String message,
   SnackPosition position = SnackPosition.BOTTOM,
   Duration duration = const Duration(seconds: 3),
-  Color colorText = Colors.white,
+  Color colorText = Colors.black,
   //Color? backgroundColor, // Optional background color
   //double blur = 28.0, // Optional blur intensity
 }) {

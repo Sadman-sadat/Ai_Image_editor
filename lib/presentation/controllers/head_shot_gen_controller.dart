@@ -1,16 +1,14 @@
 import 'package:get/get.dart';
-import 'package:image_ai_editor/data/models/head_shot_gen_model.dart';
-import 'package:image_ai_editor/data/services/head_shot_gen_service.dart';
-import 'package:image_ai_editor/data/services/image_storage_service.dart';
-import 'package:image_ai_editor/data/utility/urls.dart';
-import 'package:image_ai_editor/presentation/controllers/fetch_queued_image_controller.dart';
-import 'package:image_ai_editor/presentation/controllers/polling_result_controller.dart';
-import 'package:image_ai_editor/presentation/controllers/processing_controller.dart';
-import 'package:image_ai_editor/processing_type.dart';
+import 'package:appear_ai_image_editor/data/models/head_shot_gen_model.dart';
+import 'package:appear_ai_image_editor/data/services/head_shot_gen_service.dart';
+import 'package:appear_ai_image_editor/data/utility/urls.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/fetch_queued_image_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/polling_result_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/processing_controller.dart';
+import 'package:appear_ai_image_editor/processing_type.dart';
 
 class HeadShotGenController extends ProcessingController with PollingResultMixin {
   final HeadShotGenService _headShotService = HeadShotGenService();
-  final ImageStorageService _storageService = Get.find();
   final FetchQueuedImageController _fetchController = Get.find();
 
   String? _currentFaceImage;
@@ -39,6 +37,8 @@ class HeadShotGenController extends ProcessingController with PollingResultMixin
 
   Future<bool> generateHeadShot(String base64Original, String prompt) async {
     bool isSuccess = false;
+    _headShotService.resetCancellation();
+
     updateState(
       inProgress: true,
       errorMessage: '',
@@ -47,20 +47,6 @@ class HeadShotGenController extends ProcessingController with PollingResultMixin
     );
 
     try {
-      // Check storage first
-      final storedData = _storageService.getImageData(
-        base64Image: base64Original,
-        processingType: ProcessingType.headShotGen.storageKey,
-      );
-
-      if (storedData != null && storedData['processedUrl']?.isNotEmpty == true) {
-        updateState(
-          resultImageUrl: storedData['processedUrl']!,
-          inProgress: false,
-        );
-        return true;
-      }
-
       HeadShotGenModel model = HeadShotGenModel(
         apiKey: Urls.api_Key,
         faceImage: base64Original,
@@ -71,23 +57,14 @@ class HeadShotGenController extends ProcessingController with PollingResultMixin
       print('Headshot Generation Response: $response');
 
       if (response.containsKey('output') && response['output'] != null) {
-        // Immediate output available
         updateState(
           resultImageUrl: response['output'],
           generationTime: response['generationTime'] ?? 0.0,
           inProgress: false,
         );
 
-        // Store the processed image
-        _storageService.storeImageData(
-          base64Image: base64Original,
-          processedUrl: resultImageUrl,
-          processingType: ProcessingType.headShotGen.storageKey,
-        );
-
         isSuccess = true;
       } else if (response.containsKey('id')) {
-        // Queued processing, need to poll
         final trackerId = response['id'].toString();
         print('Tracker ID received: $trackerId');
 
@@ -96,12 +73,9 @@ class HeadShotGenController extends ProcessingController with PollingResultMixin
           generationTime: response['generationTime'] ?? 0.0,
         );
 
-        // Poll for result
         await _startPollingForResult(base64Original, trackerId);
 
-        // Check if image was successfully retrieved
         isSuccess = resultImageUrl.isNotEmpty;
-
         print('Polling result - Success: $isSuccess, Image URL: $resultImageUrl');
       }
     } catch (e, stackTrace) {
@@ -119,9 +93,7 @@ class HeadShotGenController extends ProcessingController with PollingResultMixin
   Future<void> _startPollingForResult(String base64Image, String trackerId) async {
     await startPollingForResult(
       controller: this,
-      base64Image: base64Image,
       trackerId: trackerId,
-      processingType: ProcessingType.backgroundRemoval,
     );
   }
 
@@ -130,5 +102,20 @@ class HeadShotGenController extends ProcessingController with PollingResultMixin
     super.clearCurrentProcess();
     _currentFaceImage = null;
     _currentPrompt = null;
+    _headShotService.cancelRequest();
+  }
+
+  @override
+  void cancelProcessing() {
+    _headShotService.cancelRequest();
+    _headShotService.markAsDisposed();
+    super.cancelProcessing();
+    clearCurrentProcess();
+  }
+
+  @override
+  void onClose() {
+    cancelProcessing();
+    super.onClose();
   }
 }

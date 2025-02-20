@@ -1,16 +1,14 @@
 import 'package:get/get.dart';
-import 'package:image_ai_editor/data/models/relighting_model.dart';
-import 'package:image_ai_editor/data/services/image_storage_service.dart';
-import 'package:image_ai_editor/data/services/relighting_service.dart';
-import 'package:image_ai_editor/data/utility/urls.dart';
-import 'package:image_ai_editor/presentation/controllers/fetch_queued_image_controller.dart';
-import 'package:image_ai_editor/presentation/controllers/polling_result_controller.dart';
-import 'package:image_ai_editor/presentation/controllers/processing_controller.dart';
-import 'package:image_ai_editor/processing_type.dart';
+import 'package:appear_ai_image_editor/data/models/relighting_model.dart';
+import 'package:appear_ai_image_editor/data/services/relighting_service.dart';
+import 'package:appear_ai_image_editor/data/utility/urls.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/fetch_queued_image_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/polling_result_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/processing_controller.dart';
+import 'package:appear_ai_image_editor/processing_type.dart';
 
 class RelightingController extends ProcessingController with PollingResultMixin {
   final RelightingService _relightingService = RelightingService();
-  final ImageStorageService _storageService = Get.find();
   final FetchQueuedImageController _fetchController = Get.find();
 
   String? _currentInitImage;
@@ -44,6 +42,8 @@ class RelightingController extends ProcessingController with PollingResultMixin 
 
   Future<bool> generateRelighting(String initImage, String lighting, String prompt) async {
     bool isSuccess = false;
+    _relightingService.resetCancellation();
+
     updateState(
       inProgress: true,
       errorMessage: '',
@@ -52,19 +52,6 @@ class RelightingController extends ProcessingController with PollingResultMixin 
     );
 
     try {
-      final storedData = _storageService.getImageData(
-        base64Image: initImage,
-        processingType: ProcessingType.relighting.storageKey,
-      );
-
-      if (storedData != null && storedData['processedUrl']?.isNotEmpty == true) {
-        updateState(
-          resultImageUrl: storedData['processedUrl']!,
-          inProgress: false,
-        );
-        return true;
-      }
-
       RelightingModel model = RelightingModel(
         apiKey: Urls.api_Key,
         initImage: initImage,
@@ -80,12 +67,6 @@ class RelightingController extends ProcessingController with PollingResultMixin 
           resultImageUrl: response['output'],
           generationTime: response['generationTime'] ?? 0.0,
           inProgress: false,
-        );
-
-        _storageService.storeImageData(
-          base64Image: initImage,
-          processedUrl: resultImageUrl,
-          processingType: ProcessingType.relighting.storageKey,
         );
 
         isSuccess = true;
@@ -118,9 +99,7 @@ class RelightingController extends ProcessingController with PollingResultMixin 
   Future<void> _startPollingForResult(String base64Image, String trackerId) async {
     await startPollingForResult(
       controller: this,
-      base64Image: base64Image,
       trackerId: trackerId,
-      processingType: ProcessingType.backgroundRemoval,
     );
   }
 
@@ -130,5 +109,20 @@ class RelightingController extends ProcessingController with PollingResultMixin 
     _currentInitImage = null;
     _currentLighting = null;
     _currentPrompt = null;
+    _relightingService.resetCancellation();
+  }
+
+  @override
+  void cancelProcessing() {
+    _relightingService.cancelRequest();
+    _relightingService.markAsDisposed();
+    super.cancelProcessing();
+    clearCurrentProcess();
+  }
+
+  @override
+  void onClose() {
+    cancelProcessing();
+    super.onClose();
   }
 }

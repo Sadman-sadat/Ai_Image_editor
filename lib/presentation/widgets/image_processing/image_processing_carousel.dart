@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:get/get.dart';
-import 'package:image_ai_editor/presentation/controllers/image_processing_carousel_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/image_processing_carousel_controller.dart';
 
 class ImageProcessingCarousel extends StatelessWidget {
   ImageProcessingCarousel({super.key}) {
-    Get.find<ImageProcessingCarouselController>();
+    final controller = Get.find<ImageProcessingCarouselController>();
+    // Ensure carousel initializes with the correct image
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.carouselController.jumpToPage(controller.currentIndex);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    // Get screen dimensions
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -19,27 +27,29 @@ class ImageProcessingCarousel extends StatelessWidget {
               carouselController: controller.carouselController,
               itemCount: controller.carouselImages.length,
               itemBuilder: (context, index, realIndex) {
+                final asset = controller.carouselImages[index];
+                final isSelected = controller.currentIndex == index;
+
                 return GestureDetector(
                   onTap: () {
-                    controller.setSelectedImage(
-                        controller.carouselImages[index]);
+                    controller.setSelectedImage(asset.assetPath);
+                    controller.carouselController.animateToPage(index);
                   },
                   child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 5),
+                    margin: EdgeInsets.symmetric(
+                      horizontal: screenWidth * 0.01, // Adjust margin
+                    ),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(screenWidth * 0.03),
                       border: Border.all(
-                        color: controller.selectedImage ==
-                            controller.carouselImages[index]
-                            ? Colors.blue
-                            : Colors.grey,
-                        width: controller.selectedImage ==
-                            controller.carouselImages[index]
-                            ? 3
-                            : 1,
+                        color: isSelected ? Colors.orange : Colors.grey,
+                        width: isSelected ? 3 : 1,
                       ),
-                      image: DecorationImage(
-                        image: NetworkImage(controller.carouselImages[index]),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(screenWidth * 0.02),
+                      child: Image.asset(
+                        asset.assetPath,
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -47,10 +57,11 @@ class ImageProcessingCarousel extends StatelessWidget {
                 );
               },
               options: CarouselOptions(
-                height: 450,
+                height: screenHeight * 0.4, // Adjust height
                 enlargeCenterPage: true,
                 autoPlay: false,
-                aspectRatio: 16 / 9,
+                aspectRatio: screenWidth / screenHeight, // Maintain aspect ratio
+                initialPage: controller.currentIndex,
                 onPageChanged: (index, reason) {
                   controller.updateSelectedIndex(index);
                 },
@@ -58,33 +69,29 @@ class ImageProcessingCarousel extends StatelessWidget {
             );
           },
         ),
-        const SizedBox(height: 20),
-        // Selectable Dot Indicators
+        SizedBox(height: screenHeight * 0.02), // Adjust spacing
         GetBuilder<ImageProcessingCarouselController>(
           builder: (controller) {
             return Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: controller.carouselImages.asMap().entries.map((entry) {
                 int index = entry.key;
+                final isSelected = controller.currentIndex == index;
+
                 return GestureDetector(
                   onTap: () {
-                    // Navigate to selected image and update carousel position
                     controller.navigateToImage(index);
                   },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
-                    width: controller.selectedImage ==
-                        controller.carouselImages[index]
-                        ? 16
-                        : 8,
-                    height: 8,
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    width: isSelected ? screenWidth * 0.04 : screenWidth * 0.02,
+                    height: screenHeight * 0.01,
+                    margin: EdgeInsets.symmetric(horizontal: screenWidth * 0.01),
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(4),
-                      color: controller.selectedImage ==
-                          controller.carouselImages[index]
-                          ? Colors.blue.shade700
-                          : Colors.blue.shade100,
+                      borderRadius: BorderRadius.circular(screenWidth * 0.01),
+                      color: isSelected
+                          ? Colors.orange.shade700
+                          : Colors.orange.shade100,
                     ),
                   ),
                 );
@@ -92,11 +99,11 @@ class ImageProcessingCarousel extends StatelessWidget {
             );
           },
         ),
-        const SizedBox(height: 20),
-        const Text(
-          'Swap and Select an image to swap face',
+        SizedBox(height: screenHeight * 0.05), // Adjust spacing
+        Text(
+          'Select an image to swap face',
           style: TextStyle(
-            fontSize: 18,
+            fontSize: screenWidth * 0.045, // Responsive font size
             color: Colors.grey,
           ),
         ),
