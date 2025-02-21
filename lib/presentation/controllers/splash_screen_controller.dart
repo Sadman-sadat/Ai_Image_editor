@@ -60,9 +60,6 @@ class SplashController extends GetxController with GetTickerProviderStateMixin {
 
   Future<void> _initializeServices() async {
     try {
-      // Initialize Flutter bindings if not already initialized
-      WidgetsFlutterBinding.ensureInitialized();
-
       // Initialize Mobile Ads SDK
       await MobileAds.instance.initialize();
 

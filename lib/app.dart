@@ -26,7 +26,7 @@ class _AIImageEditorState extends State<AIImageEditor> {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'AI Image Editor',
+      title: 'Appear AI Image Editor',
       home: SplashScreen(),
       initialBinding: ControllerBinder(),
       theme: ThemeData(
