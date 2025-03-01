@@ -1,4 +1,4 @@
-import 'package:appear_ai_image_editor/data/services/payment_handler.dart';
+import 'package:appear_ai_image_editor/data/services/payment_service.dart';
 import 'package:appear_ai_image_editor/data/services/subscription_service.dart';
 import 'package:appear_ai_image_editor/presentation/controllers/ads/ad_controller.dart';
 import 'package:appear_ai_image_editor/presentation/widgets/snack_bar_message.dart';
@@ -10,7 +10,7 @@ class SubscriptionController extends GetxController {
   bool isLoading = true;
   List<ProductDetails> products = [];
   String? errorMessage;
-  late PaymentHandler _paymentHandler;
+  late PaymentService _paymentHandler;
   final AdController _adController = Get.find<AdController>();
   DateTime? _lastTapTime;
   bool _isInitialized = false;
@@ -43,7 +43,7 @@ class SubscriptionController extends GetxController {
   }
 
   void _initPaymentHandler() {
-    _paymentHandler = PaymentHandler(
+    _paymentHandler = PaymentService(
       onLoading: (loading) {
         isLoading = loading;
         update();

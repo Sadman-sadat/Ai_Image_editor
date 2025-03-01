@@ -3,7 +3,7 @@ import 'package:appear_ai_image_editor/data/utility/product_ids.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'dart:async';
 
-class PaymentHandler {
+class PaymentService {
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
   late StreamSubscription<List<PurchaseDetails>> _subscription;
   final SubscriptionService _subscriptionService;
@@ -13,7 +13,7 @@ class PaymentHandler {
   final Function(String) onError;
   final Function(PurchaseDetails) onPurchaseSuccess;
 
-  PaymentHandler({
+  PaymentService({
     required this.onLoading,
     required this.onProductsLoaded,
     required this.onError,
