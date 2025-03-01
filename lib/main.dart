@@ -1,5 +1,5 @@
 import 'package:appear_ai_image_editor/app.dart';
-import 'package:appear_ai_image_editor/data/permission_service.dart';
+import 'package:appear_ai_image_editor/data/services/permission_service.dart';
 import 'package:appear_ai_image_editor/data/services/consent_service.dart';
 import 'package:appear_ai_image_editor/data/services/image_storage_service.dart';
 import 'package:flutter/material.dart';

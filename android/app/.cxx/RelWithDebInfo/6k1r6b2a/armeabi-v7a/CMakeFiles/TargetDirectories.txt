@@ -1,0 +1,2 @@
+D:/Office Work/image_ai_editor/android/app/.cxx/RelWithDebInfo/6k1r6b2a/armeabi-v7a/CMakeFiles/edit_cache.dir
+D:/Office Work/image_ai_editor/android/app/.cxx/RelWithDebInfo/6k1r6b2a/armeabi-v7a/CMakeFiles/rebuild_cache.dir

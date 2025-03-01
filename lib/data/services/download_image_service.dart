@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:appear_ai_image_editor/data/permission_service.dart';
+import 'package:appear_ai_image_editor/data/services/permission_service.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
