@@ -1,3 +1,4 @@
+import 'package:appear_ai_image_editor/data/services/consent_service.dart';
 import 'package:appear_ai_image_editor/data/services/subscription_service.dart';
 import 'package:appear_ai_image_editor/presentation/controllers/ads/banner_ad_controller.dart';
 import 'package:appear_ai_image_editor/presentation/controllers/ads/interstitial_ad_controller.dart';
@@ -12,11 +13,28 @@ class AdController extends GetxController {
   late RewardedAdController rewardedController;
 
   late SubscriptionService _subscriptionService;
+  late ConsentService _consentService;
   bool _isInitialized = false;
 
   @override
   void onInit() async {
     super.onInit();
+    _consentService = Get.find<ConsentService>();
+
+    // Wait for consent to be determined before proceeding
+    if (!_consentService.isConsentComplete) {
+      // Either wait for it to complete or add a listener
+      _consentService.addListener(() {
+        if (_consentService.isConsentComplete) {
+          _proceedWithAdInitialization();
+        }
+      });
+    } else {
+      _proceedWithAdInitialization();
+    }
+  }
+
+  Future<void> _proceedWithAdInitialization() async {
     await _initSubscriptionService();
     if (await _shouldInitializeAds()) {
       initializeControllers();

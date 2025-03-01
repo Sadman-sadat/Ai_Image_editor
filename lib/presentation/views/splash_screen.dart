@@ -100,8 +100,8 @@ class SplashScreen extends StatelessWidget {
                           elevation: WidgetStateProperty.all(0),
                         ),
                         onPressed: () {
-                          if (controller.isInitialized) {
-                            Get.off(() => MainBottomNavBarScreen());
+                          if (ctrl.isInitialized) {
+                            Get.off(() => const MainBottomNavBarScreen());
                           }
                         },
                         child: Container(
@@ -118,7 +118,7 @@ class SplashScreen extends StatelessWidget {
                           child: Stack(
                             alignment: Alignment.center,
                             children: [
-                              if (!controller.isInitialized)
+                              if (!ctrl.isInitialized)
                                 const CircularProgressIndicator(
                                   color: Colors.white,
                                   strokeWidth: 2,

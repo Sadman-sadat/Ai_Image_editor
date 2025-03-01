@@ -1,5 +1,6 @@
 import 'package:appear_ai_image_editor/app.dart';
 import 'package:appear_ai_image_editor/data/permission_service.dart';
+import 'package:appear_ai_image_editor/data/services/consent_service.dart';
 import 'package:appear_ai_image_editor/data/services/image_storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:device_preview/device_preview.dart' show DevicePreview;
@@ -12,6 +13,9 @@ void main() async {
     await GetStorage.init();
 
     Get.put(ImageStorageService());
+
+    final consentService = ConsentService();
+    Get.put(consentService);
 
     final permissionService = PermissionService();
     await permissionService.requestInitialPermissions();
