@@ -128,14 +128,17 @@ class ConsentService extends GetxController {
       await ConsentInformation.instance.reset();
       debugPrint("[ConsentService] Consent information reset");
 
-      // Use the same parameters as in initialize to ensure consistency
-      final params = ConsentRequestParameters(
-        consentDebugSettings: kDebugMode
-            ? ConsentDebugSettings(
-          debugGeography: DebugGeography.debugGeographyEea,
-        )
-            : null,
-      );
+      final params = ConsentRequestParameters();
+
+      // test
+      // // Use the same parameters as in initialize to ensure consistency
+      // final params = ConsentRequestParameters(
+      //   consentDebugSettings: kDebugMode
+      //       ? ConsentDebugSettings(
+      //     debugGeography: DebugGeography.debugGeographyEea,
+      //   )
+      //       : null,
+      // );
 
       ConsentInformation.instance.requestConsentInfoUpdate(
         params,
