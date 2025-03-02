@@ -1,5 +1,5 @@
+import 'package:appear_ai_image_editor/presentation/controllers/app_life_cycle_controller.dart';
 import 'package:appear_ai_image_editor/presentation/controllers/main_bottom_nav_bar_controller.dart';
-//import 'package:appear_ai_image_editor/presentation/controllers/splash_screen_controller.dart';
 import 'package:appear_ai_image_editor/presentation/controllers/result_preview/result_screen_image_comparison_controller.dart';
 import 'package:appear_ai_image_editor/presentation/controllers/features/interior_design_controller.dart';
 import 'package:appear_ai_image_editor/presentation/controllers/subscription_controller.dart';
@@ -19,12 +19,14 @@ import 'package:appear_ai_image_editor/presentation/controllers/ads/ad_controlle
 import 'package:appear_ai_image_editor/presentation/controllers/ads/banner_ad_controller.dart';
 import 'package:appear_ai_image_editor/presentation/controllers/ads/interstitial_ad_controller.dart';
 import 'package:appear_ai_image_editor/presentation/controllers/ads/rewarded_ad_controller.dart';
-import 'package:appear_ai_image_editor/presentation/controllers/image_processing/image_processing_settings_controller.dart';
+import 'package:appear_ai_image_editor/presentation/controllers/image_processing/image_processing_settings_controller.dart';// Add this import
 import 'package:get/get.dart';
 
 class ControllerBinder extends Bindings {
   @override
   void dependencies() {
+    Get.put(AppLifecycleController(), permanent: true);
+
     //Get.lazyPut(() => SplashController(), fenix: true);
     Get.lazyPut(() => MainBottomNavBarController(), fenix: true);
     Get.lazyPut(() => HomeScreenController(), fenix: true);

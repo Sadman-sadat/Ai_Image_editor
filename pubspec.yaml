@@ -2,7 +2,7 @@ name: appear_ai_image_editor
 description: "An Ai Image Editor project."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.2.5+12
+version: 1.2.6+12
 
 environment:
   sdk: ^3.5.4
