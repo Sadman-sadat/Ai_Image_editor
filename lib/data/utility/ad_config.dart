@@ -7,9 +7,9 @@ class AdConfig {
   static const String appOpenAdUnitId = 'ca-app-pub-4045951110359828/9483160850';
 
 
-  static const String testInterstitialAdUnitId = ' ca-app-pub-3940256099942544/1033173712';
-  static const String testBannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
-  static const String testRewardedAdUnitId = 'ca-app-pub-3940256099942544/5224354917';
+  // static const String testInterstitialAdUnitId = ' ca-app-pub-3940256099942544/1033173712';
+  // static const String testBannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
+  // static const String testRewardedAdUnitId = 'ca-app-pub-3940256099942544/5224354917';
 
   // Mediation Keys
   // static const String applovinKey = 'YOUR_APPLOVIN_KEY';

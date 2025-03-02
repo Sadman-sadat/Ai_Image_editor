@@ -56,6 +56,10 @@
     <key>NSMicrophoneUsageDescription</key>
     <string>This app needs microphone access when recording videos</string>
 
+    <!-- Google Mobile Ads application identifier -->
+        <key>GADApplicationIdentifier</key>
+        <string>ca-app-pub-4045951110359828~5787458423</string>
+
     <!-- Added network security configurations -->
     <key>NSAppTransportSecurity</key>
     <dict>
